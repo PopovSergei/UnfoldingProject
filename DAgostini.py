@@ -3,18 +3,43 @@ from utils import FileUsage
 from utils import Utils
 
 
-def d_agostini(first_path, second_path):
-    values = []
-    true_values = []
-    measured_values = []
-    FileUsage.read_first_file(first_path, values, False)
+class DAgostini:
+    def __init__(self):
+        self.values = None
+        self.bins = None
+        self.pre_migration_matrix = None
+        self.migration_matrix = None
+        self.true_values = None
+        self.measured_values = None
+        self.measured_array = None
+        self.true_array = None
+        self.result_array = None
 
-    bins = Utils.find_bins(values, True)
-    migration_matrix = [[0] * bins for _ in range(bins)]
-    set_migration_matrix(values, migration_matrix, bins, True)
+    def real_init(self, migration_path, data_path, bins_count):
+        self.values = FileUsage.read_migration_file(migration_path, False)
+        self.bins = Utils.find_bins(self.values, True)
+        self.pre_migration_matrix = set_pre_migration_matrix(self.values, self.bins, False)
+        self.migration_matrix = set_migration_matrix(self.values, self.pre_migration_matrix, self.bins, False)
 
-    FileUsage.read_second_file(second_path, true_values, measured_values)
-    algorithm(migration_matrix, measured_values, true_values, bins)
+        self.true_values = []
+        self.measured_values = []
+        FileUsage.read_data_file(data_path, self.true_values, self.measured_values)
+
+        self.measured_array = set_array("Meas:", self.measured_values, self.bins, True)
+        self.true_array = set_array("True:", self.true_values, self.bins, True)
+
+        self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
+
+
+def set_pre_migration_matrix(values, bins, print_result):
+    pre_migration_matrix = [[0] * bins for _ in range(bins)]
+    for value in values:
+        pre_migration_matrix[value.trueVal][value.measuredVal] = pre_migration_matrix[value.trueVal][value.measuredVal] + 1
+
+    if print_result:
+        DataOutput.print_matrix(pre_migration_matrix, bins, False)
+
+    return pre_migration_matrix
 
 
 def set_migration_matrix(values, migration_matrix, bins, print_result):
@@ -24,12 +49,6 @@ def set_migration_matrix(values, migration_matrix, bins, print_result):
     for value in values:
         true_array[value.trueVal] = true_array[value.trueVal] + 1
         # meas_array[value.measuredVal] = true_array[value.measuredVal] + 1
-        migration_matrix[value.trueVal][value.measuredVal] = migration_matrix[value.trueVal][value.measuredVal] + 1
-
-    if print_result:
-        DataOutput.print_array("True:", true_array)
-        print()
-        DataOutput.print_matrix(migration_matrix, bins, False)
 
     for i in range(bins):
         for j in range(bins):
@@ -40,23 +59,27 @@ def set_migration_matrix(values, migration_matrix, bins, print_result):
                 migration_matrix[i][j] = value
 
     if print_result:
+        DataOutput.print_array("True:", true_array)
+        print()
         DataOutput.print_matrix(migration_matrix, bins, True)
         DataOutput.show_matrix(migration_matrix, bins)
 
+    return migration_matrix
 
-def algorithm(migration_matrix, measured_values, true_values, bins):
-    measured_array = [0] * bins
-    true_array = [0] * bins
-    for value in measured_values:
-        measured_array[value] = measured_array[value] + 1
-    for value in true_values:
-        true_array[value] = true_array[value] + 1
 
-    if True:
-        DataOutput.print_array("Meas:", measured_array)
-        DataOutput.print_array("True:", true_array)
+def set_array(name, values, bins, print_result):
+    array = [0] * bins
+    for value in values:
+        array[value] = array[value] + 1
+
+    if print_result:
+        DataOutput.print_array(name, array)
         print()
 
+    return array
+
+
+def set_result(migration_matrix, measured_array, bins):
     efficiency_array = [0] * bins
     get_efficiency_array(efficiency_array, migration_matrix, bins, True)
 
@@ -86,11 +109,7 @@ def algorithm(migration_matrix, measured_values, true_values, bins):
             DataOutput.print_array("Distribution:", distribution, 2)
             print()
 
-    DataOutput.show_bar_chart(
-        measured_array, result_array, true_array,
-        'Measured', 'Result', 'True',
-        'Bins', 'Events', bins
-    )
+    return result_array
 
 
 def get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins, print_result):

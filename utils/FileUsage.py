@@ -4,7 +4,8 @@ class Value:
         self.trueVal = true_val
 
 
-def read_first_file(file_path, values, print_result):
+def read_migration_file(file_path, print_result):
+    values = []
     with open(file_path, encoding="UTF-8") as file:
         for line in file:
             p = line.rstrip("\n").split(", ")
@@ -12,12 +13,15 @@ def read_first_file(file_path, values, print_result):
                 values.append(Value(int(float(p[0])), int(float(p[1]))))
             except ValueError as e:
                 print(e)
+
     if print_result:
         for value in values:
             print(value.measuredVal, value.trueVal)
 
+    return values
 
-def read_second_file(file_path, true_values, measured_values):
+
+def read_data_file(file_path, true_values, measured_values):
     with open(file_path, encoding="UTF-8") as file:
         for line in file:
             p = line.rstrip("\n").split(", ")
