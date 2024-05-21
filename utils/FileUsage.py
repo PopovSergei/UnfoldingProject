@@ -10,7 +10,7 @@ def read_file(file_path, print_result):
         for line in file:
             p = line.rstrip("\n").split(", ")
             try:
-                values.append(Value(int(float(p[0])), int(float(p[1]))))
+                values.append(Value(float(p[0]), float(p[1])))
             except ValueError as e:
                 print(e)
 

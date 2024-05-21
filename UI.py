@@ -5,21 +5,26 @@ from tkinter.ttk import Combobox
 from tkinter import messagebox as mb
 from tkinter import ttk
 
+from Baron import Baron
 from DAgostini import DAgostini
 from utils import DataOutput
 
 migration_path = "resources/first_part2.txt"
 data_path = "resources/second_part2.txt"
+# migration_path = "resources/sim_p_2.txt"
+# data_path = "resources/sim_p_2.txt"
 
 d_agostini_str = "Д\'Агостини"
 baron_str = "Барон"
 
 algorithm = None
 chk_btn_enabled = None
+custom_bins = None
 
 is_ready = False
 
 d_agostini = DAgostini()
+baron = Baron()
 
 # bg_color = "#5d5780"
 # text_color = "#99FD83"
@@ -39,6 +44,8 @@ custom_font = ("Comic Sans MS", 15, "bold")  # Arial
 
 
 def find_migration_data():
+    global is_ready
+    is_ready = False
     filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
     if filepath != "":
         global migration_path
@@ -46,6 +53,8 @@ def find_migration_data():
 
 
 def find_data_to_unfold():
+    global is_ready
+    is_ready = False
     filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
     if filepath != "":
         global data_path
@@ -54,13 +63,22 @@ def find_data_to_unfold():
 
 def find_result():
     global migration_path, data_path, is_ready
-    if migration_path != "" and data_path != "":
-        d_agostini.real_init(migration_path, data_path)
-        is_ready = True
-    elif migration_path == "":
-        mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
-    elif data_path == "":
-        mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
+    try:
+        user_custom_bins = int(custom_bins.get())
+
+        if migration_path != "" and data_path != "":
+            if algorithm.get() == d_agostini_str:
+                d_agostini.real_init(migration_path, data_path, user_custom_bins)
+            elif algorithm.get() == baron_str:
+                baron.real_init(migration_path, data_path, user_custom_bins)
+            is_ready = True
+        elif migration_path == "":
+            mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
+        elif data_path == "":
+            mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
+
+    except ValueError:
+        mb.showinfo("Информация", "Ошибка в задании бинов")
 
 
 def show_result():
@@ -79,14 +97,17 @@ def show_migration_matrix():
     if is_ready:
         if algorithm.get() == d_agostini_str:
             DataOutput.show_matrix(d_agostini.migration_matrix, d_agostini.bins)
+        elif algorithm.get() == baron_str:
+            DataOutput.show_matrix(baron.migration_matrix, baron.bins)
     else:
         mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
 
 
 def draw_widgets():
-    global algorithm, chk_btn_enabled
+    global algorithm, chk_btn_enabled, custom_bins
     algorithm = StringVar(value=d_agostini_str)
     chk_btn_enabled = IntVar(value=1)
+    custom_bins = StringVar(value="0")
 
     Label(
         text="Выберите данные для:", font=custom_font,
@@ -120,6 +141,10 @@ def draw_widgets():
         text="Количество бинов (0-авто): ", font=custom_font,
         bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
     ).grid(row=4, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+
+    Entry(
+        font=custom_font, textvariable=custom_bins, width=10
+    ).grid(row=4, column=1, ipadx=6, ipady=6, padx=5, pady=5)
 
     Button(
         text="Пуск", border=0, font=custom_font, command=find_result,

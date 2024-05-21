@@ -9,15 +9,15 @@ class DAgostini(UnfoldMethod):
         super().__init__()
         self.result_array = None
 
-    def real_init(self, migration_path, data_path):
+    def real_init(self, migration_path, data_path, custom_bins=0):
         self.values = FileUsage.read_file(migration_path, False)
-
-        self.bins = Utils.find_bins(self.values, True)
+        super().set_bins(custom_bins, True)
 
         super().set_pre_migration_matrix(False)
         super().set_migration_matrix(False)
 
         self.values = FileUsage.read_file(data_path, False)
+        super().set_bins(custom_bins, True)
 
         super().set_arrays(True)
 

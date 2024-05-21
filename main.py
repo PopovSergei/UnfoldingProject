@@ -18,9 +18,9 @@ first_path2 = "resources/first_part2.txt"
 second_path2 = "resources/second_part2.txt"
 
 if __name__ == '__main__':
-    # Запуск UI (пока работает только алгоритм Д'Агостини)
-    # window = Window()
-    # window.run()
+    # Запуск UI
+    window = Window()
+    window.run()
 
     # Метод, позволяющий разделять файлы
     # utils.separate_file(filePath2, first_path2, second_path2)
@@ -30,5 +30,5 @@ if __name__ == '__main__':
     # dagostini.real_init(first_path2, second_path2)
 
     # Запуск алгоритма Барона
-    baron = Baron.Baron()
-    baron.real_init(first_path2, second_path2)
+    # baron = Baron.Baron()
+    # baron.real_init(first_path2, second_path2)

@@ -11,9 +11,10 @@ class Baron(UnfoldMethod):
         self.efficiency_array = None
         self.acceptance_array = None
 
-    def real_init(self, migration_path, data_path):
+    def real_init(self, migration_path, data_path, custom_bins=0):
         self.values = FileUsage.read_file(migration_path, False)
-        self.bins = Utils.find_bins(self.values, False)
+        super().set_bins(custom_bins, True)
+        # self.bins = Utils.find_bins(self.values, False)
 
         super().set_pre_migration_matrix(True)
         super().set_migration_matrix(True)
@@ -21,6 +22,7 @@ class Baron(UnfoldMethod):
         self.set_efficiency_and_acceptance(True)
 
         self.values = FileUsage.read_file(data_path, False)
+        super().set_bins(custom_bins, True)
         super().set_arrays(True)
 
         baron_algorithm(self.migration_matrix, self.efficiency_array, self.acceptance_array,
@@ -77,7 +79,8 @@ def baron_algorithm(migration_matrix, efficiency_array, acceptance_array, measur
         if pre_result != 0:
             result *= pre_result
 
-    print(result)
+    #print(result)
+    print()
     print(f"result={round(result, 10)}")
 
     # new_result = [0] * bins
