@@ -13,7 +13,7 @@ class DAgostini(UnfoldMethod):
         super().set_bins(custom_bins, True)
 
         super().set_pre_migration_matrix(False)
-        super().set_migration_matrix(False)
+        super().set_migration_matrix(False, False)
 
         self.values = FileUsage.read_file(data_path, False)
 
@@ -39,7 +39,7 @@ class DAgostini(UnfoldMethod):
 
 def set_result(migration_matrix, measured_array, bins):
     efficiency_array = [0] * bins
-    get_efficiency_array(efficiency_array, migration_matrix, bins, True)
+    get_efficiency_array(efficiency_array, migration_matrix, bins, False)
 
     distribution = [1 / bins] * bins
     statistics_new = 100

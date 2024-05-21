@@ -16,7 +16,7 @@ class Baron(UnfoldMethod):
         # self.bins = Utils.find_bins(self.values, False)
 
         super().set_pre_migration_matrix(True)
-        super().set_migration_matrix(True)
+        super().set_migration_matrix(True, True)
 
         self.set_efficiency_and_acceptance(True)
 

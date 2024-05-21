@@ -9,10 +9,10 @@ from Baron import Baron
 from DAgostini import DAgostini
 from utils import DataOutput
 
-# migration_path = "resources/first_part2.txt"
-# data_path = "resources/second_part2.txt"
-migration_path = "resources/sim_p_2.txt"
-data_path = "resources/sim_p_2.txt"
+migration_path = "resources/first_part2.txt"
+data_path = "resources/second_part2.txt"
+# migration_path = "resources/sim_p_2.txt"
+# data_path = "resources/sim_p_2.txt"
 
 d_agostini_str = "Д\'Агостини"
 baron_str = "Барон"
@@ -20,6 +20,7 @@ baron_str = "Барон"
 algorithm = None
 chk_btn_enabled = None
 custom_bins = None
+splitting = None
 
 is_ready = False
 
@@ -65,10 +66,11 @@ def find_result():
     global migration_path, data_path, is_ready
     try:
         user_custom_bins = int(custom_bins.get())
+        user_splitting = int(splitting.get())
 
         if migration_path != "" and data_path != "":
             if algorithm.get() == d_agostini_str:
-                d_agostini.real_init(migration_path, data_path, user_custom_bins)
+                d_agostini.real_init(migration_path, data_path, user_custom_bins, user_splitting)
             elif algorithm.get() == baron_str:
                 baron.real_init(migration_path, data_path, user_custom_bins)
             is_ready = True
@@ -78,7 +80,7 @@ def find_result():
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
 
     except ValueError:
-        mb.showinfo("Информация", "Ошибка в задании бинов")
+        mb.showinfo("Информация", "Ошибка в задании бинов или разбиения")
 
 
 def show_result():
@@ -106,10 +108,14 @@ def show_migration_matrix():
 def calculate_fault():
     if is_ready:
         if algorithm.get() == d_agostini_str:
-            sum_of_differences = 0
+            sum_of_differences_result = 0
+            sum_of_differences_measured = 0
             for i in range(d_agostini.bins):
-                sum_of_differences += abs(d_agostini.result_array[i] - d_agostini.true_array[i])
-            mb.showinfo("Погрешность", f"Погрешность: {round(sum_of_differences / d_agostini.bins, 4)} событий")
+                sum_of_differences_result += abs(d_agostini.result_array[i] - d_agostini.true_array[i])
+                sum_of_differences_measured += abs(d_agostini.measured_array[i] - d_agostini.true_array[i])
+            mb.showinfo("Погрешность",
+                        f"Погрешность результата: {round(sum_of_differences_result / d_agostini.bins, 4)} событий\n" +
+                        f"Погрешность измерения: {round(sum_of_differences_measured / d_agostini.bins, 4)} событий")
         elif algorithm.get() == baron_str:
             mb.showinfo("Погрешность", "Пока нет")
     else:
@@ -117,10 +123,11 @@ def calculate_fault():
 
 
 def draw_widgets():
-    global algorithm, chk_btn_enabled, custom_bins
+    global algorithm, chk_btn_enabled, custom_bins, splitting
     algorithm = StringVar(value=d_agostini_str)
     chk_btn_enabled = IntVar(value=1)
     custom_bins = StringVar(value="0")
+    splitting = StringVar(value="0")
 
     Label(
         text="Выберите данные для:", font=custom_font,
@@ -154,33 +161,40 @@ def draw_widgets():
         text="Количество бинов (0-авто): ", font=custom_font,
         bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
     ).grid(row=4, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-
     Entry(
         font=custom_font, textvariable=custom_bins, width=10
     ).grid(row=4, column=1, ipadx=6, ipady=6, padx=5, pady=5)
+
+    Label(
+        text="Разбиение (0-авто): ", font=custom_font,
+        bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
+    ).grid(row=5, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+    Entry(
+        font=custom_font, textvariable=splitting, width=10
+    ).grid(row=5, column=1, ipadx=6, ipady=6, padx=5, pady=5)
 
     Button(
         text="Пуск", border=0, font=custom_font, command=find_result,
         bg=btn_bg_color, fg=btn_text_color, activebackground=active_btn_bg_color,
         activeforeground=active_btn_text_color
-    ).grid(row=5, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+    ).grid(row=6, column=0, ipadx=6, ipady=6, padx=5, pady=5)
 
     Button(
         text="Гистограмма результата", border=0, font=custom_font, command=show_result,
         bg=btn_bg_color, fg=btn_text_color, activebackground=active_btn_bg_color,
         activeforeground=active_btn_text_color
-    ).grid(row=6, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+    ).grid(row=7, column=0, ipadx=6, ipady=6, padx=5, pady=5)
     Button(
         text="Матрица миграций", border=0, font=custom_font, command=show_migration_matrix,
         bg=btn_bg_color, fg=btn_text_color, activebackground=active_btn_bg_color,
         activeforeground=active_btn_text_color
-    ).grid(row=6, column=1, ipadx=6, ipady=6, padx=5, pady=5)
+    ).grid(row=7, column=1, ipadx=6, ipady=6, padx=5, pady=5)
 
     Button(
         text="Рассчитать погрешность", border=0, font=custom_font, command=calculate_fault,
         bg=btn_bg_color, fg=btn_text_color, activebackground=active_btn_bg_color,
         activeforeground=active_btn_text_color
-    ).grid(row=7, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+    ).grid(row=8, column=0, ipadx=6, ipady=6, padx=5, pady=5)
 
     # Checkbutton(
     #     text="Сравнить с истинным", font=custom_font, variable=chk_btn_enabled,
@@ -198,7 +212,7 @@ class Window(Tk):
 
         for c in range(2):
             self.columnconfigure(index=c, weight=1)
-        for r in range(8):
+        for r in range(9):
             self.rowconfigure(index=r, weight=1)
 
     def run(self):

@@ -27,12 +27,15 @@ class UnfoldMethod:
             DataOutput.print_array("Meas:", self.measured_array)
             print()
 
-    def set_migration_matrix(self, print_result):
+    def set_migration_matrix(self, baron_style, print_result):
         self.migration_matrix = [[0] * self.bins for _ in range(self.bins)]
         for i in range(self.bins):
             for j in range(self.bins):
                 if self.true_array[i] > 0:
-                    self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.true_array[i]  # meas_array[j]
+                    if not baron_style:
+                        self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.true_array[i]
+                    else:
+                        self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.measured_array[j]
 
         if print_result:
             DataOutput.print_matrix(self.migration_matrix, self.bins, True)
