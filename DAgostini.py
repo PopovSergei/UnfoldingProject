@@ -8,7 +8,7 @@ class DAgostini(UnfoldMethod):
         super().__init__()
         self.result_array = None
 
-    def real_init(self, migration_path, data_path, custom_bins=0):
+    def real_init(self, migration_path, data_path, custom_bins=0, splitting=0):
         self.values = FileUsage.read_file(migration_path, False)
         super().set_bins(custom_bins, True)
 
@@ -16,11 +16,25 @@ class DAgostini(UnfoldMethod):
         super().set_migration_matrix(False)
 
         self.values = FileUsage.read_file(data_path, False)
-        super().set_bins(custom_bins, True)
 
-        super().set_arrays(True)
-
-        self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
+        if splitting == 0:
+            super().set_bins(custom_bins, True)
+            super().set_arrays(True)
+            self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
+        else:
+            self.result_array = [0] * self.bins
+            more_values = super().split_values(splitting)
+            for i in range(splitting):
+                self.values = more_values[i]
+                super().set_bins(custom_bins, True)
+                super().set_arrays(True)
+                # self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
+                pre_result = set_result(self.migration_matrix, self.measured_array, self.bins)
+                for j in range(self.bins):
+                    self.result_array[j] += pre_result[j]
+            self.values = FileUsage.read_file(data_path, False)
+            super().set_bins(custom_bins, True)
+            super().set_arrays(True)
 
 
 def set_result(migration_matrix, measured_array, bins):

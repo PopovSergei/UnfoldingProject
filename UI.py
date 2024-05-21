@@ -9,10 +9,10 @@ from Baron import Baron
 from DAgostini import DAgostini
 from utils import DataOutput
 
-migration_path = "resources/first_part2.txt"
-data_path = "resources/second_part2.txt"
-# migration_path = "resources/sim_p_2.txt"
-# data_path = "resources/sim_p_2.txt"
+# migration_path = "resources/first_part2.txt"
+# data_path = "resources/second_part2.txt"
+migration_path = "resources/sim_p_2.txt"
+data_path = "resources/sim_p_2.txt"
 
 d_agostini_str = "Д\'Агостини"
 baron_str = "Барон"
@@ -103,6 +103,19 @@ def show_migration_matrix():
         mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
 
 
+def calculate_fault():
+    if is_ready:
+        if algorithm.get() == d_agostini_str:
+            sum_of_differences = 0
+            for i in range(d_agostini.bins):
+                sum_of_differences += abs(d_agostini.result_array[i] - d_agostini.true_array[i])
+            mb.showinfo("Погрешность", f"Погрешность: {round(sum_of_differences / d_agostini.bins, 4)} событий")
+        elif algorithm.get() == baron_str:
+            mb.showinfo("Погрешность", "Пока нет")
+    else:
+        mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
+
+
 def draw_widgets():
     global algorithm, chk_btn_enabled, custom_bins
     algorithm = StringVar(value=d_agostini_str)
@@ -163,10 +176,16 @@ def draw_widgets():
         activeforeground=active_btn_text_color
     ).grid(row=6, column=1, ipadx=6, ipady=6, padx=5, pady=5)
 
-    Checkbutton(
-        text="Сравнить с истинным", font=custom_font, variable=chk_btn_enabled,
-        bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
+    Button(
+        text="Рассчитать погрешность", border=0, font=custom_font, command=calculate_fault,
+        bg=btn_bg_color, fg=btn_text_color, activebackground=active_btn_bg_color,
+        activeforeground=active_btn_text_color
     ).grid(row=7, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+
+    # Checkbutton(
+    #     text="Сравнить с истинным", font=custom_font, variable=chk_btn_enabled,
+    #     bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
+    # ).grid(row=7, column=0, ipadx=6, ipady=6, padx=5, pady=5)
 
 
 class Window(Tk):

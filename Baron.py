@@ -26,7 +26,6 @@ class Baron(UnfoldMethod):
 
         baron_algorithm(self.migration_matrix, self.efficiency_array, self.acceptance_array,
                         self.measured_array, self.true_array, self.bins)
-        # self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
 
     def set_efficiency_and_acceptance(self, print_result):
         self.efficiency_array = [0] * self.bins

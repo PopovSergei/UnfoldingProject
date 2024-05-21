@@ -1,3 +1,5 @@
+import random
+
 from utils import DataOutput
 
 
@@ -81,6 +83,15 @@ class UnfoldMethod:
                 print(f"maxMeasured={max_measured}, maxTrue={max_true}, max_val={self.bins}, bins={custom_bins}")
                 DataOutput.print_array("Intervals:", intervals)
                 print()
+
+    def split_values(self, splitting):
+        more_values = []
+        for i in range(splitting):
+            more_values.append([])
+        for value in self.values:
+            number = random.randint(0, splitting - 1)
+            more_values[number].append(value)
+        return more_values
 
 
 def find_interval(value, intervals):
