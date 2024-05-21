@@ -1,7 +1,6 @@
 from UnfoldMethod import UnfoldMethod
 from utils import DataOutput
 from utils import FileUsage
-from utils import Utils
 
 
 class DAgostini(UnfoldMethod):
