@@ -9,24 +9,40 @@ class DAgostini(UnfoldMethod):
         self.result_array = None
 
     def real_init(self, migration_path, data_path, custom_bins=0, splitting=0):
+        # Получение данных из файла, запись в values
         self.values = FileUsage.read_file(migration_path, False)
+        # Задание бинов. Изменение bins и intervals
         super().set_bins(custom_bins, True)
 
+        # Замена значений на номера бинов в values
+        if custom_bins != 0:
+            super().binning()
+
+        # Заполнение данными из values: true_array, measured_array, pre_migration_matrix
         super().set_pre_migration_matrix(False)
+        # Создание migration_matrix
         super().set_migration_matrix(False, False)
 
+        # Получение данных из файла, запись в values
         self.values = FileUsage.read_file(data_path, False)
 
         if splitting == 0:
-            super().set_bins(custom_bins, True)
+            # Замена значений на номера бинов в values
+            if custom_bins == 0:
+                super().old_binning()
+            else:
+                super().binning()
+            # Заполнение данными из values: true_array, measured_array
             super().set_arrays(True)
+            # Запуск алгоритма
             self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
         else:
             self.result_array = [0] * self.bins
             more_values = super().split_values(splitting)
             for i in range(splitting):
                 self.values = more_values[i]
-                super().set_bins(custom_bins, True)
+                # Замена значений на номера бинов в values
+                super().binning()
                 super().set_arrays(True)
                 # self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
                 pre_result = set_result(self.migration_matrix, self.measured_array, self.bins)

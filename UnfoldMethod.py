@@ -7,6 +7,7 @@ class UnfoldMethod:
     def __init__(self):
         self.values = None  # Массив объектов с двумя полями trueVal и measuredVal
         self.bins = None  # Количество бинов
+        self.intervals = None  # Значения верхних границ интервалов (бинов)
         self.pre_migration_matrix = None  # Матрица до деления
         self.migration_matrix = None  # Матрица после деления
         self.measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине
@@ -70,18 +71,21 @@ class UnfoldMethod:
                 print(f"maxMeasured={max_measured}, maxTrue={max_true}, bins={self.bins}")
                 print()
         else:
-            interval = max_val / custom_bins
-            interval_counter = interval
+            elements_in_interval = int(len(self.values) / custom_bins)
+            interval_counter = elements_in_interval
             intervals = []
-            while interval_counter <= max_val:
+            for i in range(custom_bins):
                 intervals.append(interval_counter)
-                interval_counter += interval
+                interval_counter += elements_in_interval
 
-            for value in self.values:
-                value.measuredVal = find_interval(value.measuredVal, intervals)
-                value.trueVal = find_interval(value.trueVal, intervals)
+            quick_sort(self.values)
+
+            for i in range(custom_bins):
+                intervals[i] = self.values[intervals[i]].measuredVal
+            intervals[custom_bins - 1] = self.values[-1].measuredVal
 
             self.bins = custom_bins
+            self.intervals = intervals
             if print_result:
                 print(f"maxMeasured={max_measured}, maxTrue={max_true}, max_val={self.bins}, bins={custom_bins}")
                 DataOutput.print_array("Intervals:", intervals)
@@ -96,9 +100,38 @@ class UnfoldMethod:
             more_values[number].append(value)
         return more_values
 
+    def binning(self):
+        for value in self.values:
+            value.measuredVal = find_interval(value.measuredVal, self.intervals)
+            value.trueVal = find_interval(value.trueVal, self.intervals)
+
+    def old_binning(self):
+        for value in self.values:
+            value.measuredVal = int(value.measuredVal)
+            value.trueVal = int(value.trueVal)
+
 
 def find_interval(value, intervals):
     for i, n in enumerate(intervals):
         if value <= n:
             return i
     return len(intervals)
+
+
+def quick_sort(values, first=0, last=None):
+    if last is None:
+        last = len(values) - 1
+    if first >= last:
+        return
+    i, j = first, last
+    pivot = values[random.randint(first, last)]
+    while i <= j:
+        while values[i].measuredVal < pivot.measuredVal:
+            i += 1
+        while values[j].measuredVal > pivot.measuredVal:
+            j -= 1
+        if i <= j:
+            values[i], values[j] = values[j], values[i]
+            i, j = i + 1, j - 1
+    quick_sort(values, first, j)
+    quick_sort(values, i, last)
