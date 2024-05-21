@@ -10,6 +10,7 @@ def find_bins(values, print_result):
     bins = max(max_measured, max_true) + 1
     if print_result:
         print(f"maxMeasured={max_measured}, maxTrue={max_true}, bins={bins}")
+        print()
     return bins
 
 

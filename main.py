@@ -1,7 +1,7 @@
 import DAgostini
 import Baron
 import utils
-from view import Window
+from UI import Window
 
 filePath = "resources/text.txt"
 filePath2 = "resources/sim_p_2.txt"
@@ -18,8 +18,17 @@ first_path2 = "resources/first_part2.txt"
 second_path2 = "resources/second_part2.txt"
 
 if __name__ == '__main__':
-    window = Window(700, 500, "Обратная свёртка")
-    window.run()
+    # Запуск UI (пока работает только алгоритм Д'Агостини)
+    # window = Window()
+    # window.run()
+
+    # Метод, позволяющий разделять файлы
     # utils.separate_file(filePath2, first_path2, second_path2)
-    # DAgostini.d_agostini(first_path2, second_path2)
-    # Baron.baron(first_path2, second_path2)
+
+    # Запуск алгоритма Д'Агостини
+    # dagostini = DAgostini.DAgostini()
+    # dagostini.real_init(first_path2, second_path2)
+
+    # Запуск алгоритма Барона
+    baron = Baron.Baron()
+    baron.real_init(first_path2, second_path2)

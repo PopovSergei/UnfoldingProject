@@ -4,7 +4,6 @@ from tkinter import filedialog
 from tkinter.ttk import Combobox
 from tkinter import messagebox as mb
 from tkinter import ttk
-import numpy as np
 
 from DAgostini import DAgostini
 from utils import DataOutput
@@ -12,15 +11,15 @@ from utils import DataOutput
 migration_path = "resources/first_part2.txt"
 data_path = "resources/second_part2.txt"
 
-d_agostini = "Д\'Агостини"
-baron = "Барон"
+d_agostini_str = "Д\'Агостини"
+baron_str = "Барон"
 
 algorithm = None
 chk_btn_enabled = None
 
 is_ready = False
 
-DAgostini = DAgostini()
+d_agostini = DAgostini()
 
 # bg_color = "#5d5780"
 # text_color = "#99FD83"
@@ -56,7 +55,7 @@ def find_data_to_unfold():
 def find_result():
     global migration_path, data_path, is_ready
     if migration_path != "" and data_path != "":
-        DAgostini.real_init(migration_path, data_path, 0)
+        d_agostini.real_init(migration_path, data_path)
         is_ready = True
     elif migration_path == "":
         mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
@@ -66,11 +65,11 @@ def find_result():
 
 def show_result():
     if is_ready:
-        if algorithm.get() == d_agostini:
+        if algorithm.get() == d_agostini_str:
             DataOutput.show_bar_chart(
-                DAgostini.measured_array, DAgostini.result_array, DAgostini.true_array,
+                d_agostini.measured_array, d_agostini.result_array, d_agostini.true_array,
                 'Measured', 'Result', 'True',
-                'Bins', 'Events', DAgostini.bins
+                'Bins', 'Events', d_agostini.bins
             )
     else:
         mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
@@ -78,14 +77,15 @@ def show_result():
 
 def show_migration_matrix():
     if is_ready:
-        if algorithm.get() == d_agostini:
-            DataOutput.show_matrix(DAgostini.migration_matrix, DAgostini.bins)
+        if algorithm.get() == d_agostini_str:
+            DataOutput.show_matrix(d_agostini.migration_matrix, d_agostini.bins)
     else:
         mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
 
+
 def draw_widgets():
     global algorithm, chk_btn_enabled
-    algorithm = StringVar(value=d_agostini)
+    algorithm = StringVar(value=d_agostini_str)
     chk_btn_enabled = IntVar(value=1)
 
     Label(
@@ -108,11 +108,11 @@ def draw_widgets():
         bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
     ).grid(row=2, column=0, ipadx=6, ipady=6, padx=5, pady=5)
     Radiobutton(
-        text=d_agostini, font=custom_font, value=d_agostini, variable=algorithm,
+        text=d_agostini_str, font=custom_font, value=d_agostini_str, variable=algorithm,
         bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
     ).grid(row=3, column=0, ipadx=6, ipady=6, padx=5, pady=5)
     Radiobutton(
-        text=baron, font=custom_font, value=baron, variable=algorithm,
+        text=baron_str, font=custom_font, value=baron_str, variable=algorithm,
         bg=bg_color, fg=text_color, activebackground=bg_color, activeforeground=text_color
     ).grid(row=3, column=1, ipadx=6, ipady=6, padx=5, pady=5)
 
@@ -145,12 +145,11 @@ def draw_widgets():
 
 
 class Window(Tk):
-    def __init__(self, width, height, title="MyWindow", resizable=(False, False)):
+    def __init__(self):
         super().__init__()
-        self.title(title)
-        # self.geometry(f"{width}x{height}")
+        self.title("Обратная свёртка")
         self.geometry("500x400")
-        self.resizable(resizable[0], resizable[1])
+        self.resizable(False, False)
         self.config(bg=bg_color)
 
         for c in range(2):

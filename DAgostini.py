@@ -1,82 +1,27 @@
+from UnfoldMethod import UnfoldMethod
 from utils import DataOutput
 from utils import FileUsage
 from utils import Utils
 
 
-class DAgostini:
+class DAgostini(UnfoldMethod):
     def __init__(self):
-        self.values = None
-        self.bins = None
-        self.pre_migration_matrix = None
-        self.migration_matrix = None
-        self.true_values = None
-        self.measured_values = None
-        self.measured_array = None
-        self.true_array = None
+        super().__init__()
         self.result_array = None
 
-    def real_init(self, migration_path, data_path, bins_count):
-        self.values = FileUsage.read_migration_file(migration_path, False)
+    def real_init(self, migration_path, data_path):
+        self.values = FileUsage.read_file(migration_path, False)
+
         self.bins = Utils.find_bins(self.values, True)
-        self.pre_migration_matrix = set_pre_migration_matrix(self.values, self.bins, False)
-        self.migration_matrix = set_migration_matrix(self.values, self.pre_migration_matrix, self.bins, False)
 
-        self.true_values = []
-        self.measured_values = []
-        FileUsage.read_data_file(data_path, self.true_values, self.measured_values)
+        super().set_pre_migration_matrix(False)
+        super().set_migration_matrix(False)
 
-        self.measured_array = set_array("Meas:", self.measured_values, self.bins, True)
-        self.true_array = set_array("True:", self.true_values, self.bins, True)
+        self.values = FileUsage.read_file(data_path, False)
+
+        super().set_arrays(True)
 
         self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
-
-
-def set_pre_migration_matrix(values, bins, print_result):
-    pre_migration_matrix = [[0] * bins for _ in range(bins)]
-    for value in values:
-        pre_migration_matrix[value.trueVal][value.measuredVal] = pre_migration_matrix[value.trueVal][value.measuredVal] + 1
-
-    if print_result:
-        DataOutput.print_matrix(pre_migration_matrix, bins, False)
-
-    return pre_migration_matrix
-
-
-def set_migration_matrix(values, migration_matrix, bins, print_result):
-    true_array = [0] * bins
-    # meas_array = [0] * bins
-
-    for value in values:
-        true_array[value.trueVal] = true_array[value.trueVal] + 1
-        # meas_array[value.measuredVal] = true_array[value.measuredVal] + 1
-
-    for i in range(bins):
-        for j in range(bins):
-            # if meas_array[j] > 0 and migration_matrix[i][j] > 0:
-            #     value = migration_matrix[i][j] / meas_array[j]
-            if true_array[i] > 0 and migration_matrix[i][j] > 0:
-                value = migration_matrix[i][j] / true_array[i]
-                migration_matrix[i][j] = value
-
-    if print_result:
-        DataOutput.print_array("True:", true_array)
-        print()
-        DataOutput.print_matrix(migration_matrix, bins, True)
-        DataOutput.show_matrix(migration_matrix, bins)
-
-    return migration_matrix
-
-
-def set_array(name, values, bins, print_result):
-    array = [0] * bins
-    for value in values:
-        array[value] = array[value] + 1
-
-    if print_result:
-        DataOutput.print_array(name, array)
-        print()
-
-    return array
 
 
 def set_result(migration_matrix, measured_array, bins):

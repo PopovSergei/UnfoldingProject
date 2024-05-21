@@ -4,7 +4,7 @@ class Value:
         self.trueVal = true_val
 
 
-def read_migration_file(file_path, print_result):
+def read_file(file_path, print_result):
     values = []
     with open(file_path, encoding="UTF-8") as file:
         for line in file:
@@ -21,18 +21,7 @@ def read_migration_file(file_path, print_result):
     return values
 
 
-def read_data_file(file_path, true_values, measured_values):
-    with open(file_path, encoding="UTF-8") as file:
-        for line in file:
-            p = line.rstrip("\n").split(", ")
-            try:
-                measured_values.append(int(float(p[0])))
-                true_values.append(int(float(p[1])))
-            except ValueError as e:
-                print(e)
-
-
-def separate_file(file_path, first_path, second_path):
+def separate_file(file_path, first_path, second_path, lines=10000, bins=20):
     lines_counter = 0
     files_flag = True
 
@@ -41,7 +30,7 @@ def separate_file(file_path, first_path, second_path):
 
     with open(file_path, "r", encoding="UTF-8") as file:
         for line in file:
-            if lines_counter > 10000:
+            if lines_counter > lines:
                 first_file.close()
                 second_file.close()
                 file.close()
@@ -56,7 +45,7 @@ def separate_file(file_path, first_path, second_path):
             except ValueError as e:
                 print(e)
                 continue
-            if val1 < 20 and val2 < 20:
+            if val1 < bins and val2 < bins:
                 if files_flag:
                     first_file.write(line)
                     files_flag = False
