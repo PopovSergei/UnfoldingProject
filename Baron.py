@@ -11,17 +11,12 @@ class Baron(UnfoldMethod):
         self.acceptance_array = None
 
     def real_init(self, migration_path, data_path, custom_bins=0):
-        self.values = FileUsage.read_file(migration_path, False)
-        super().set_bins(custom_bins, True)
-        # self.bins = Utils.find_bins(self.values, False)
-
-        super().set_pre_migration_matrix(True)
-        super().set_migration_matrix(True, True)
+        super().init_migration_part(migration_path, custom_bins, True)
 
         self.set_efficiency_and_acceptance(True)
 
         self.values = FileUsage.read_file(data_path, False)
-        super().set_bins(custom_bins, True)
+        super().do_binning(custom_bins)
         super().set_arrays(True)
 
         baron_algorithm(self.migration_matrix, self.efficiency_array, self.acceptance_array,

@@ -9,53 +9,38 @@ class DAgostini(UnfoldMethod):
         self.result_array = None
 
     def real_init(self, migration_path, data_path, custom_bins=0, splitting=0):
-        # Получение данных из файла, запись в values
-        self.values = FileUsage.read_file(migration_path, False)
-        # Задание бинов. Изменение bins и intervals
-        super().set_bins(custom_bins, True)
+        super().init_migration_part(migration_path, custom_bins, False)
 
-        # Замена значений на номера бинов в values
-        if custom_bins != 0:
-            super().binning()
-
-        # Заполнение данными из values: true_array, measured_array, pre_migration_matrix
-        super().set_pre_migration_matrix(False)
-        # Создание migration_matrix
-        super().set_migration_matrix(False, False)
-
-        # Получение данных из файла, запись в values
+        # Получение данных из файла, запись в values. Изменяется: values
         self.values = FileUsage.read_file(data_path, False)
+        super().do_binning(custom_bins)
+        super().set_arrays(True)
 
         if splitting == 0:
-            # Замена значений на номера бинов в values
-            if custom_bins == 0:
-                super().old_binning()
-            else:
-                super().binning()
-            # Заполнение данными из values: true_array, measured_array
-            super().set_arrays(True)
-            # Запуск алгоритма
-            self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
+            self.result_array = d_agostini_algorithm(self.migration_matrix, self.measured_array, self.bins, True)
         else:
+            util_true_array = self.true_array.copy()
+            util_measured_array = self.measured_array.copy()
             self.result_array = [0] * self.bins
-            more_values = super().split_values(splitting)
+
+            values_array = super().split_values(splitting)
             for i in range(splitting):
-                self.values = more_values[i]
-                # Замена значений на номера бинов в values
-                super().binning()
+                self.values = values_array[i]
                 super().set_arrays(True)
-                # self.result_array = set_result(self.migration_matrix, self.measured_array, self.bins)
-                pre_result = set_result(self.migration_matrix, self.measured_array, self.bins)
+                pre_result = d_agostini_algorithm(self.migration_matrix, self.measured_array, self.bins, False)
                 for j in range(self.bins):
                     self.result_array[j] += pre_result[j]
-            self.values = FileUsage.read_file(data_path, False)
-            super().set_bins(custom_bins, True)
-            super().set_arrays(True)
+
+            true_array_sum = sum(util_true_array)
+            measured_array_sum = sum(util_measured_array)
+            for i in range(self.bins):
+                self.result_array[i] = self.result_array[i] / splitting
+                self.true_array[i] = util_true_array[i] / true_array_sum
+                self.measured_array[i] = util_measured_array[i] / measured_array_sum
 
 
-def set_result(migration_matrix, measured_array, bins):
-    efficiency_array = [0] * bins
-    get_efficiency_array(efficiency_array, migration_matrix, bins, False)
+def d_agostini_algorithm(migration_matrix, measured_array, bins, return_values):
+    efficiency_array = get_efficiency_array(migration_matrix, bins, False)
 
     distribution = [1 / bins] * bins
     statistics_new = 100
@@ -65,8 +50,7 @@ def set_result(migration_matrix, measured_array, bins):
         unfolding_matrix = [[0] * bins for _ in range(bins)]
         get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins, False)
 
-        expected_array = [0] * bins
-        get_expected_array(expected_array, efficiency_array, unfolding_matrix, measured_array, bins, False, True)
+        expected_array = get_expected_array(efficiency_array, unfolding_matrix, measured_array, bins, False, True)
 
         result_array = expected_array
         old_distribution = distribution.copy()
@@ -82,8 +66,10 @@ def set_result(migration_matrix, measured_array, bins):
         if True:
             DataOutput.print_array("Distribution:", distribution, 2)
             print()
-
-    return result_array
+    if return_values:
+        return result_array
+    else:
+        return distribution
 
 
 def get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins, print_result):
@@ -105,7 +91,8 @@ def get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins,
         DataOutput.print_matrix(unfolding_matrix, bins, True)
 
 
-def get_efficiency_array(efficiency_array, migration_matrix, bins, print_result):
+def get_efficiency_array(migration_matrix, bins, print_result):
+    efficiency_array = [0] * bins
     for j in range(bins):
         efficiency = 0
         for k in range(bins):
@@ -116,8 +103,11 @@ def get_efficiency_array(efficiency_array, migration_matrix, bins, print_result)
         DataOutput.print_array("Efficiency:", efficiency_array, 2)
         print()
 
+    return efficiency_array
 
-def get_expected_array(expected_array, efficiency_array, unfolding_matrix, measured_array, bins, use_eff, print_result):
+
+def get_expected_array(efficiency_array, unfolding_matrix, measured_array, bins, use_eff, print_result):
+    expected_array = [0] * bins
     for i in range(bins):
         expected = 0
         for j in range(bins):
@@ -129,6 +119,8 @@ def get_expected_array(expected_array, efficiency_array, unfolding_matrix, measu
 
     if print_result:
         DataOutput.print_array("Expected:", expected_array, 2)
+
+    return expected_array
 
 
 def diy_chisquare(observed, expected, bins):
