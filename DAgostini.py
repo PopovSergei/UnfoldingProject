@@ -21,6 +21,7 @@ class DAgostini(UnfoldMethod):
         else:
             util_true_array = self.true_array.copy()
             util_measured_array = self.measured_array.copy()
+            util_values_len = len(self.values)
             self.result_array = [0] * self.bins
 
             values_array = super().split_values(splitting)
@@ -31,12 +32,10 @@ class DAgostini(UnfoldMethod):
                 for j in range(self.bins):
                     self.result_array[j] += pre_result[j]
 
-            true_array_sum = sum(util_true_array)
-            measured_array_sum = sum(util_measured_array)
             for i in range(self.bins):
-                self.result_array[i] = self.result_array[i] / splitting
-                self.true_array[i] = util_true_array[i] / true_array_sum
-                self.measured_array[i] = util_measured_array[i] / measured_array_sum
+                self.result_array[i] = self.result_array[i] / splitting * util_values_len
+                self.true_array[i] = util_true_array[i]
+                self.measured_array[i] = util_measured_array[i]
 
 
 def d_agostini_algorithm(migration_matrix, measured_array, bins, return_values):
