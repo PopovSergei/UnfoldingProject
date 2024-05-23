@@ -29,7 +29,7 @@ def show_matrix_v2(matrix, bins):
 def show_bar_chart(
         first_array, second_array, third_array=None,
         first_name="", second_name="", third_name=None,
-        x_label="X_label", y_label="y_label", bins=0
+        x_label="x_label", y_label="y_label", bins=0
 ):
     x = np.arange(bins)
     width = 0.3

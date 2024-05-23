@@ -27,10 +27,10 @@ class UnfoldMethod:
         self.measured_array = [0] * self.bins
         self.pre_migration_matrix = [[0] * self.bins for _ in range(self.bins)]
         for value in self.values:
-            self.true_array[value.trueVal] = self.true_array[value.trueVal] + 1
-            self.measured_array[value.measuredVal] = self.measured_array[value.measuredVal] + 1
-            self.pre_migration_matrix[value.trueVal][value.measuredVal] = self.pre_migration_matrix[value.trueVal][
-                                                                              value.measuredVal] + 1
+            self.true_array[value.trueVal] += 1
+            self.measured_array[value.measuredVal] += 1
+            self.pre_migration_matrix[value.trueVal][value.measuredVal] += 1
+
         self.print_results("set_pre_migration_matrix", print_result)
 
     # Используются: values, bins, true_array или measured_array, pre_migration_matrix. Изменяются: migration_matrix
@@ -52,8 +52,8 @@ class UnfoldMethod:
         self.true_array = [0] * self.bins
         self.measured_array = [0] * self.bins
         for value in self.values:
-            self.true_array[value.trueVal] = self.true_array[value.trueVal] + 1
-            self.measured_array[value.measuredVal] = self.measured_array[value.measuredVal] + 1
+            self.true_array[value.trueVal] += 1
+            self.measured_array[value.measuredVal] += 1
 
         self.print_results("set_arrays", print_result)
 

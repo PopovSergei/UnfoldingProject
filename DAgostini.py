@@ -39,39 +39,34 @@ class DAgostini(UnfoldMethod):
 
 
 def d_agostini_algorithm(migration_matrix, measured_array, bins, return_values):
-    efficiency_array = get_efficiency_array(migration_matrix, bins, False)
+    efficiency_array = set_efficiency_array(migration_matrix, bins, False)
+    distribution_array = [1 / bins] * bins
+    result_array = [0] * bins
+    new_chi_square = 100
+    old_chi_square = 101
 
-    distribution = [1 / bins] * bins
-    statistics_new = 100
-    statistics_old = 101
-    result_array = []
-    while statistics_old > statistics_new > 0.05:
-        unfolding_matrix = [[0] * bins for _ in range(bins)]
-        get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins, False)
+    while old_chi_square > new_chi_square > 0.05:
+        unfolding_matrix = set_unfolding_matrix(migration_matrix, distribution_array, bins, False)
+        result_array = set_result_array(efficiency_array, unfolding_matrix, measured_array, bins, False, True)
+        old_distribution_array = distribution_array.copy()
 
-        expected_array = get_expected_array(efficiency_array, unfolding_matrix, measured_array, bins, False, True)
-
-        result_array = expected_array
-        old_distribution = distribution.copy()
-
-        expected_sum = sum(expected_array)
+        result_array_sum = sum(result_array)
         for j in range(bins):
-            distribution[j] = expected_array[j] / expected_sum
+            distribution_array[j] = result_array[j] / result_array_sum
 
-        statistics_old = statistics_new
-        statistics_new = diy_chisquare(distribution, old_distribution, bins)
-        print(f"statistics_old={statistics_old}, statistics_new={statistics_new}")
+        old_chi_square = new_chi_square
+        new_chi_square = find_chi_square(distribution_array, old_distribution_array, bins)
 
-        if True:
-            DataOutput.print_array("Distribution:", distribution, 2)
-            print()
+        print_results("Distribution:", distribution_array, True)
+        print(f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n")
+
     if return_values:
         return result_array
-    else:
-        return distribution
+    return distribution_array
 
 
-def get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins, print_result):
+def set_unfolding_matrix(migration_matrix, distribution, bins, print_result):
+    unfolding_matrix = [[0] * bins for _ in range(bins)]
     for i in range(bins):
         for j in range(bins):
             numerator = migration_matrix[i][j] * distribution[i]
@@ -89,8 +84,10 @@ def get_unfolding_matrix(unfolding_matrix, migration_matrix, distribution, bins,
     if print_result:
         DataOutput.print_matrix(unfolding_matrix, bins, True)
 
+    return unfolding_matrix
 
-def get_efficiency_array(migration_matrix, bins, print_result):
+
+def set_efficiency_array(migration_matrix, bins, print_result):
     efficiency_array = [0] * bins
     for j in range(bins):
         efficiency = 0
@@ -98,33 +95,34 @@ def get_efficiency_array(migration_matrix, bins, print_result):
             efficiency += migration_matrix[k][j]
         efficiency_array[j] = efficiency
 
-    if print_result:
-        DataOutput.print_array("Efficiency:", efficiency_array, 2)
-        print()
-
+    print_results("Efficiency:", efficiency_array, print_result)
     return efficiency_array
 
 
-def get_expected_array(efficiency_array, unfolding_matrix, measured_array, bins, use_eff, print_result):
-    expected_array = [0] * bins
+def set_result_array(efficiency_array, unfolding_matrix, measured_array, bins, use_eff, print_result):
+    result_array = [0] * bins
     for i in range(bins):
         expected = 0
         for j in range(bins):
             expected += unfolding_matrix[j][i] * measured_array[j]
         if use_eff and efficiency_array[i] != 0:
-            expected_array[i] = (1 / efficiency_array[i]) * expected
+            result_array[i] = (1 / efficiency_array[i]) * expected
         else:
-            expected_array[i] = expected
+            result_array[i] = expected
 
-    if print_result:
-        DataOutput.print_array("Expected:", expected_array, 2)
-
-    return expected_array
+    print_results("Res:", result_array, print_result)
+    return result_array
 
 
-def diy_chisquare(observed, expected, bins):
-    statistic = 0
+def find_chi_square(distribution, old_distribution, bins):
+    chi_square = 0
     for i in range(bins):
-        if expected[i] != 0:
-            statistic += ((observed[i] - expected[i]) ** 2) / expected[i]
-    return statistic
+        if old_distribution[i] != 0:
+            chi_square += ((distribution[i] - old_distribution[i]) ** 2) / old_distribution[i]
+    return chi_square
+
+
+def print_results(name, array, print_result):
+    if not print_result:
+        return
+    DataOutput.print_array(name, array, 2)
