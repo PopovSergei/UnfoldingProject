@@ -4,6 +4,7 @@ import numpy as np
 
 
 def show_matrix(matrix, bins):
+    plt.close()
     new_matrix = [[0] * bins for _ in range(bins)]
     for i in range(bins):
         for j in range(bins):
@@ -15,7 +16,8 @@ def show_matrix(matrix, bins):
     plt.show()
 
 
-def show_matrix_v2(matrix, bins):
+def show_matrix_int(matrix, bins):
+    plt.close()
     fig, ax = plt.subplots()
     ax.matshow(matrix, cmap="Blues")
     for i in range(bins):
@@ -31,6 +33,7 @@ def show_bar_chart(
         first_name="", second_name="", third_name=None,
         x_label="x_label", y_label="y_label", bins=0
 ):
+    plt.close()
     x = np.arange(bins)
     width = 0.3
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -44,6 +47,29 @@ def show_bar_chart(
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
+    ax.set_xticks(x)
+    ax.legend()
+    plt.show()
+
+
+def show_bar_chart_5(
+        first_array, second_array, third_array, fourth_array, fifth_array,
+        first_name, second_name, third_name, fourth_name, fifth_name,
+        bins
+):
+    plt.close()
+    x = np.arange(bins)
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    ax.bar(x - 2 * width, first_array, width, label=first_name, color="#324D5E")
+    ax.bar(x - width, second_array, width, label=second_name, color="#3FB39E")
+    ax.bar(x, third_array, width, label=third_name, color="#EFCA3E")
+    ax.bar(x + width, fourth_array, width, label=fourth_name, color="#E57A36")
+    ax.bar(x + 2 * width, fifth_array, width, label=fifth_name, color="#E24745")
+
+    ax.set_xlabel('Bins')
+    ax.set_ylabel('Events')
     ax.set_xticks(x)
     ax.legend()
     plt.show()

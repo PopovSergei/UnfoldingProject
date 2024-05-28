@@ -26,8 +26,8 @@ class Baron(UnfoldMethod):
         self.efficiency_array = [0] * self.bins
         self.acceptance_array = [0] * self.bins
         for i in range(self.bins):
-            self.efficiency_array[i] = self.pre_migration_matrix[i][i] / self.true_array[i]
-            self.acceptance_array[i] = self.pre_migration_matrix[i][i] / self.measured_array[i]
+            self.efficiency_array[i] = self.pre_migration_matrix[i][i] / self.migration_true_array[i]
+            self.acceptance_array[i] = self.pre_migration_matrix[i][i] / self.migration_measured_array[i]
 
         if print_result:
             DataOutput.print_array("Efficiency:", self.efficiency_array, 4)
