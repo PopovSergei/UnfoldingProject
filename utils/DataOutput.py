@@ -5,26 +5,16 @@ import numpy as np
 
 def show_matrix(matrix, bins):
     plt.close()
-    new_matrix = [[0] * bins for _ in range(bins)]
-    for i in range(bins):
-        for j in range(bins):
-            new_matrix[i][j] = round(matrix[i][j], 2)
-
-    sns.heatmap(data=new_matrix, annot=True, cmap="Blues")
-    plt.xlabel('Measured bins')
-    plt.ylabel('True bins')
-    plt.show()
-
-
-def show_matrix_int(matrix, bins):
-    plt.close()
-    fig, ax = plt.subplots()
-    ax.matshow(matrix, cmap="Blues")
-    for i in range(bins):
-        for j in range(bins):
-            ax.text(i, j, str(matrix[j][i]), va='center', ha='center')
-    plt.xlabel('Measured bins')
-    plt.ylabel('True bins')
+    if isinstance(matrix[0][0], int):
+        sns.heatmap(data=matrix, annot=True, cmap="Blues", fmt="d")
+    else:
+        new_matrix = [[0] * bins for _ in range(bins)]
+        for i in range(bins):
+            for j in range(bins):
+                new_matrix[i][j] = round(matrix[i][j], 2)
+        sns.heatmap(data=new_matrix, annot=True, cmap="Blues")
+    plt.xlabel("Measured bins")
+    plt.ylabel("True bins")
     plt.show()
 
 
