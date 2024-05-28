@@ -31,9 +31,9 @@ def show_bar_chart(
         ax.bar(x - width / 2, first_array, width, label=first_name)
         ax.bar(x + width / 2, second_array, width, label=second_name)
     else:
-        ax.bar(x - width, first_array, width, label=first_name)
-        ax.bar(x, second_array, width, label=second_name)
-        ax.bar(x + width, third_array, width, label=third_name)
+        ax.bar(x - width, first_array, width, label=first_name, color="#6FAC9C")
+        ax.bar(x, second_array, width, label=second_name, color="#9FD4C0")
+        ax.bar(x + width, third_array, width, label=third_name, color="#D0E8B4")
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)

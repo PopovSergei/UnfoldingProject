@@ -21,8 +21,6 @@ baron = Baron()
 
 
 def find_migration_data():
-    global is_ready
-    is_ready = False
     filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
     if filepath != "":
         global migration_path
@@ -30,8 +28,6 @@ def find_migration_data():
 
 
 def find_data_to_unfold():
-    global is_ready
-    is_ready = False
     filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
     if filepath != "":
         global data_path
@@ -66,14 +62,14 @@ def show_result(algorithm, result_style):
             DataOutput.show_bar_chart_5(
                 d_agostini.migration_measured_array, d_agostini.migration_true_array,
                 d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
-                'MigMeasured', 'MigTrue',
+                'PriorMeasured', 'PriorTrue',
                 'Measured', 'True', 'Result',
                 d_agostini.bins
             )
         else:
             DataOutput.show_bar_chart(
-                d_agostini.measured_array, d_agostini.result_array, d_agostini.true_array,
-                'Measured', 'Result', 'True',
+                d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
+                'Measured', 'True', 'Result',
                 'Bins', 'Events', d_agostini.bins
             )
 
@@ -183,97 +179,59 @@ class Window(Tk):
     def draw_widgets(self):
         self.config(bg=self.bg_color)
 
+        self.draw_label("Выберите данные для:", 0, 0, 2)
+
+        self.draw_button("Матрицы миграций", 1, 0, find_migration_data)
+        self.draw_button("Обратной свёртки", 1, 1, find_data_to_unfold)
+
+        self.draw_label("Алгоритм:", 2, 0, 2)
+
+        self.draw_radio_button(d_agostini_str, 3, 0, d_agostini_str, self.algorithm)
+        self.draw_radio_button(baron_str, 3, 1, baron_str, self.algorithm)
+
+        self.draw_label("Тип биннинга:", 4, 0, 2)
+
+        self.draw_radio_button("Одинаковый", 5, 0, True, self.binning_type)
+        self.draw_radio_button("Равномерный", 5, 1, False, self.binning_type)
+
+        self.draw_label("Бины (0-авто):", 6, 0)
+        self.draw_entry(6, 1, self.custom_bins)
+
+        self.draw_label("Усреднение (0-без):", 7, 0)
+        self.draw_entry(7, 1, self.splitting)
+
+        self.draw_button("Пуск", 8, 0,
+                         lambda: find_result(self.algorithm, self.binning_type, self.custom_bins, self.splitting))
+
+        self.draw_button("Гистограмма результата", 9, 0,
+                         lambda: show_result(self.algorithm, self.result_style))
+        self.draw_button("Матрица миграций", 9, 1, lambda: show_migration_matrix(self.algorithm))
+
+        self.draw_button("Рассчитать погрешность", 10, 0, lambda: calculate_fault(self.algorithm))
+        self.draw_button("Матрица премигр.", 10, 1, lambda: show_pre_migration_matrix(self.algorithm))
+
+    def draw_label(self, text, row, column, column_span=1):
         Label(
-            text="Выберите данные для:", font=self.custom_font,
-            bg=self.bg_color, fg=self.text_color
-        ).grid(row=0, column=0, columnspan=2, ipadx=6, ipady=6, padx=5, pady=5)
+            text=text, font=self.custom_font, bg=self.bg_color, fg=self.text_color
+        ).grid(row=row, column=column, columnspan=column_span, ipadx=6, ipady=6, padx=5, pady=5)
+
+    def draw_button(self, text, row, column, command):
         Button(
-            text="Матрицы миграций", border=0, font=self.custom_font,
-            command=find_migration_data,
+            text=text, border=0, font=self.custom_font, command=command,
             bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
             activeforeground=self.active_btn_text_color
-        ).grid(row=1, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-        Button(
-            text="Обратной свёртки", border=0, font=self.custom_font,
-            command=find_data_to_unfold,
-            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
-            activeforeground=self.active_btn_text_color
-        ).grid(row=1, column=1, ipadx=6, ipady=6, padx=5, pady=5)
+        ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
 
-        Label(
-            text="Алгоритм: ", font=self.custom_font,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=2, column=0, columnspan=2,  ipadx=6, ipady=6, padx=5, pady=5)
+    def draw_radio_button(self, text, row, column, value, variable):
         Radiobutton(
-            text=d_agostini_str, font=self.custom_font, value=d_agostini_str, variable=self.algorithm,
+            text=text, font=self.custom_font, value=value, variable=variable,
             bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=3, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-        Radiobutton(
-            text=baron_str, font=self.custom_font, value=baron_str, variable=self.algorithm,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=3, column=1, ipadx=6, ipady=6, padx=5, pady=5)
+        ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
 
-        Label(
-            text="Тип биннинга: ", font=self.custom_font,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=4, column=0, columnspan=2, ipadx=6, ipady=6, padx=5, pady=5)
-        Radiobutton(
-            text="Одинаковый", font=self.custom_font, value=True, variable=self.binning_type,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=5, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-        Radiobutton(
-            text="Равномерный", font=self.custom_font, value=False, variable=self.binning_type,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=5, column=1, ipadx=6, ipady=6, padx=5, pady=5)
-
-        Label(
-            text="Бины (0-авто): ", font=self.custom_font,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=6, column=0, ipadx=6, ipady=6, padx=5, pady=5)
+    def draw_entry(self, row, column, text_var):
         Entry(
-            font=self.custom_font, textvariable=self.custom_bins, width=10
-        ).grid(row=6, column=1, ipadx=6, ipady=6, padx=5, pady=5)
-
-        Label(
-            text="Усреднение (0-без): ", font=self.custom_font,
-            bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=7, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-        Entry(
-            font=self.custom_font, textvariable=self.splitting, width=10
-        ).grid(row=7, column=1, ipadx=6, ipady=6, padx=5, pady=5)
-
-        Button(
-            text="Пуск", border=0, font=self.custom_font,
-            command=lambda: find_result(self.algorithm, self.binning_type, self.custom_bins, self.splitting),
-            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
-            activeforeground=self.active_btn_text_color
-        ).grid(row=8, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-
-        Button(
-            text="Гистограмма результата", border=0, font=self.custom_font,
-            command=lambda: show_result(self.algorithm, self.result_style),
-            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
-            activeforeground=self.active_btn_text_color
-        ).grid(row=9, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-        Button(
-            text="Матрица миграций", border=0, font=self.custom_font,
-            command=lambda: show_migration_matrix(self.algorithm),
-            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
-            activeforeground=self.active_btn_text_color
-        ).grid(row=9, column=1, ipadx=6, ipady=6, padx=5, pady=5)
-
-        Button(
-            text="Рассчитать погрешность", border=0, font=self.custom_font,
-            command=lambda: calculate_fault(self.algorithm),
-            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
-            activeforeground=self.active_btn_text_color
-        ).grid(row=10, column=0, ipadx=6, ipady=6, padx=5, pady=5)
-        Button(
-            text="Матрица премигр.", border=0, font=self.custom_font,
-            command=lambda: show_pre_migration_matrix(self.algorithm),
-            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
-            activeforeground=self.active_btn_text_color
-        ).grid(row=10, column=1, ipadx=6, ipady=6, padx=5, pady=5)
+            font=self.custom_font, textvariable=text_var, width=10
+        ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
 
     def set_light_theme(self):
         self.bg_color = "#f1fafd"
