@@ -15,11 +15,12 @@ class UnfoldMethod:
         self.measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине (апостериор)
         self.true_array = None  # Массив с количеством событий, которые должны были попость в каждый бин (апостериор)
 
-    def init_migration_part(self, migration_path, custom_bins, baron_style):
+    def init_migration_part(self, migration_path, binning_type, custom_bins, baron_style):
+        # Получение априорных данных из файла, запись в values. Изменяется: values
         self.values = FileUsage.read_file(migration_path, False)
         self.bins = custom_bins
-        self.set_bins(True)
-        self.do_binning(custom_bins)
+        self.set_intervals(binning_type, True)
+        self.binning()
         self.set_pre_migration_matrix(False)
         self.set_migration_matrix(baron_style, False)
 
@@ -59,8 +60,8 @@ class UnfoldMethod:
 
         self.print_results("set_arrays", print_result)
 
-    # Задание бинов. Используется, может сортироваться: values. Изменяются: bins, intervals
-    def set_bins(self, print_result):
+    # Задание интервалов. Используется, может сортироваться: values. Изменяются: bins, intervals
+    def set_intervals(self, binning_type, print_result):
         max_measured = 0
         max_true = 0
         for value in self.values:
@@ -70,10 +71,18 @@ class UnfoldMethod:
 
         if self.bins == 0:
             self.bins = max_val
+
+        intervals = []
+        if binning_type:
+            interval = max_val / self.bins
+            interval_counter = interval
+
+            while interval_counter <= max_val:
+                intervals.append(interval_counter)
+                interval_counter += interval
         else:
             elements_in_interval = int(len(self.values) / self.bins)
             interval_counter = elements_in_interval
-            intervals = []
             for i in range(self.bins):
                 intervals.append(interval_counter)
                 interval_counter += elements_in_interval
@@ -84,9 +93,9 @@ class UnfoldMethod:
                 intervals[i] = self.values[intervals[i]].measuredVal
             intervals[self.bins - 1] = max_val
 
-            self.intervals = intervals
+        self.intervals = intervals
 
-        self.print_results("set_bins", print_result)
+        self.print_results("set_intervals", print_result)
 
     def split_values(self, splitting):
         more_values = []
@@ -97,22 +106,11 @@ class UnfoldMethod:
                     more_values[i].append(value)
         return more_values
 
-    # Замена значений на номера бинов в values. Может использоваться: intervals. Изменяется: values
-    def do_binning(self, custom_bins):
-        if custom_bins == 0:
-            self.old_binning()
-        else:
-            self.binning()
-
+    # Замена значений на номера бинов в values. Используется: intervals. Изменяется: values
     def binning(self):
         for value in self.values:
             value.measuredVal = find_interval(value.measuredVal, self.intervals)
             value.trueVal = find_interval(value.trueVal, self.intervals)
-
-    def old_binning(self):
-        for value in self.values:
-            value.measuredVal = int(value.measuredVal)
-            value.trueVal = int(value.trueVal)
 
     def print_results(self, case, print_result):
         if not print_result:
@@ -128,11 +126,10 @@ class UnfoldMethod:
             DataOutput.print_array("True:", self.true_array)
             DataOutput.print_array("Meas:", self.measured_array)
             print()
-        elif case == "set_bins":
+        elif case == "set_intervals":
             print("\n\n")
             print(f"Bins={self.bins}")
-            if self.intervals is not None:
-                DataOutput.print_array("Intervals:", self.intervals)
+            DataOutput.print_array("Intervals:", self.intervals)
             print()
 
 

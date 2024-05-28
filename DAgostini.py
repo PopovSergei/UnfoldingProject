@@ -8,12 +8,12 @@ class DAgostini(UnfoldMethod):
         super().__init__()
         self.result_array = None
 
-    def real_init(self, migration_path, data_path, custom_bins=0, splitting=0):
-        super().init_migration_part(migration_path, custom_bins, False)
+    def real_init(self, migration_path, data_path, binning_type, custom_bins=0, splitting=0):
+        super().init_migration_part(migration_path, binning_type, custom_bins, False)
 
-        # Получение данных из файла, запись в values. Изменяется: values
+        # Получение апостериорных данных из файла, запись в values. Изменяется: values
         self.values = FileUsage.read_file(data_path, False)
-        super().do_binning(custom_bins)
+        super().binning()
         super().set_arrays(True)
 
         if splitting == 0:
