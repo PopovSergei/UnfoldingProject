@@ -79,9 +79,9 @@ def show_migration_matrix(algorithm):
         return
 
     if algorithm.get() == d_agostini_str:
-        DataOutput.show_matrix(d_agostini.migration_matrix, d_agostini.bins)
+        DataOutput.show_matrix(d_agostini.migration_matrix, d_agostini.bins, False)
     elif algorithm.get() == baron_str:
-        DataOutput.show_matrix(baron.migration_matrix, baron.bins)
+        DataOutput.show_matrix(baron.migration_matrix, baron.bins, False)
 
 
 def show_pre_migration_matrix(algorithm):
@@ -89,9 +89,9 @@ def show_pre_migration_matrix(algorithm):
         return
 
     if algorithm.get() == d_agostini_str:
-        DataOutput.show_matrix(d_agostini.pre_migration_matrix, d_agostini.bins)
+        DataOutput.show_matrix(d_agostini.pre_migration_matrix, d_agostini.bins, True)
     elif algorithm.get() == baron_str:
-        DataOutput.show_matrix(baron.pre_migration_matrix, baron.bins)
+        DataOutput.show_matrix(baron.pre_migration_matrix, baron.bins, True)
 
 
 def calculate_fault(algorithm):

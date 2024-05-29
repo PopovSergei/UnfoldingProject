@@ -3,9 +3,9 @@ import seaborn as sns
 import numpy as np
 
 
-def show_matrix(matrix, bins):
+def show_matrix(matrix, bins, int_vals):
     plt.close()
-    if isinstance(matrix[0][0], int):
+    if int_vals:
         sns.heatmap(data=matrix, annot=True, cmap="Blues", fmt="d")
     else:
         new_matrix = [[0] * bins for _ in range(bins)]
