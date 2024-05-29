@@ -59,18 +59,42 @@ def show_result(algorithm, result_style):
 
     if algorithm.get() == d_agostini_str:
         if result_style.get():
-            DataOutput.show_bar_chart_5(
-                d_agostini.migration_measured_array, d_agostini.migration_true_array,
-                d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
-                'PriorMeasured', 'PriorTrue',
-                'Measured', 'True', 'Result',
-                d_agostini.bins
+            DataOutput.show_bar_charts(
+                [d_agostini.migration_measured_array, d_agostini.migration_true_array,
+                 d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array],
+                ['PriorMeasured', 'PriorTrue', 'Measured', 'True', 'Result'],
+                "Bins", "Events", d_agostini.bins
             )
+
+            # DataOutput.show_bar_chart_5(
+            #     d_agostini.migration_measured_array, d_agostini.migration_true_array,
+            #     d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
+            #     'PriorMeasured', 'PriorTrue',
+            #     'Measured', 'True', 'Result',
+            #     d_agostini.bins
+            # )
         else:
             DataOutput.show_bar_chart(
                 d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
                 'Measured', 'True', 'Result',
                 'Bins', 'Events', d_agostini.bins
+            )
+
+
+def show_results(algorithm):
+    if check_not_ready(algorithm.get()):
+        return
+
+    if algorithm.get() == d_agostini_str:
+        if len(d_agostini.results) == 2:
+            first_result = []
+            second_result = []
+            for i in range(d_agostini.bins):
+                first_result.append(abs(d_agostini.true_array[i] - d_agostini.results[0][i]))
+                second_result.append(abs(d_agostini.true_array[i] - d_agostini.results[1][i]))
+
+            DataOutput.show_bar_charts(
+                [first_result, second_result], ["First", "Second"], "Bins", "Fault", d_agostini.bins
             )
 
 

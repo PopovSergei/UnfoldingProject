@@ -4,13 +4,16 @@ class Value:
         self.trueVal = true_val
 
 
-def read_file(file_path, print_result):
+def read_file(file_path, measured_val_array, true_val_array, print_result):
     values = []
     with open(file_path, encoding="UTF-8") as file:
         for line in file:
             p = line.rstrip("\n").split(", ")
             try:
                 values.append(Value(float(p[0]), float(p[1])))
+                if len(p) > 1:
+                    measured_val_array.append(float(p[0]))
+                    true_val_array.append(float(p[1]))
             except ValueError as e:
                 print(e)
 

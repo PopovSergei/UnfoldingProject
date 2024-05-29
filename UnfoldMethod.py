@@ -1,3 +1,4 @@
+import math
 import random
 
 from utils import DataOutput, FileUsage
@@ -17,9 +18,11 @@ class UnfoldMethod:
 
     def init_migration_part(self, migration_path, binning_type, custom_bins, baron_style):
         # Получение априорных данных из файла, запись в values. Изменяется: values
-        self.values = FileUsage.read_file(migration_path, False)
+        measured_val_array = []
+        true_val_array = []
+        self.values = FileUsage.read_file(migration_path, measured_val_array, true_val_array, False)
         self.bins = custom_bins
-        self.set_intervals(binning_type, True)
+        self.set_intervals(binning_type, measured_val_array, true_val_array, True)
         self.binning()
         self.set_pre_migration_matrix(False)
         self.set_migration_matrix(baron_style, False)
@@ -61,40 +64,60 @@ class UnfoldMethod:
         self.print_results("set_arrays", print_result)
 
     # Задание интервалов. Используется, может сортироваться: values. Изменяются: bins, intervals
-    def set_intervals(self, binning_type, print_result):
-        max_measured = 0
-        max_true = 0
+    def set_intervals(self, binning_type, measured_val_array, true_val_array, print_result):
+        min_val = 100
+        max_val = 0
         for value in self.values:
-            max_measured = max(max_measured, value.measuredVal)
-            max_true = max(max_true, value.trueVal)
-        max_val = max(int(max_measured), int(max_true)) + 1
+            min_val = min(min_val, value.measuredVal, value.trueVal)
+            max_val = max(max_val, value.measuredVal, value.trueVal)
+        min_val = math.floor(min_val)
+        max_val = math.ceil(max_val)
 
         if self.bins == 0:
-            self.bins = max_val
+            self.bins = 40
 
         intervals = []
-        if binning_type:
-            interval = max_val / self.bins
-            interval_counter = interval
+        interval = (max_val - min_val) / (math.ceil(self.bins / 2))
+        interval_counter = interval + min_val
 
-            while interval_counter <= max_val:
-                intervals.append(interval_counter)
-                interval_counter += interval
-        else:
-            elements_in_interval = int(len(self.values) / self.bins)
-            interval_counter = elements_in_interval
-            for i in range(self.bins):
-                intervals.append(interval_counter)
-                interval_counter += elements_in_interval
+        while interval_counter <= max_val:
+            intervals.append(interval_counter)
+            interval_counter += interval
 
-            quick_sort(self.values, 0, len(self.values) - 1)
+        # if binning_type:
+        #     return
+        # else:
+        #     elements_in_interval = int(len(self.values) / self.bins)
+        #     interval_counter = elements_in_interval
+        #     for i in range(self.bins):
+        #         intervals.append(interval_counter)
+        #         interval_counter += elements_in_interval
+        #
+        #     quick_sort(self.values, 0, len(self.values) - 1)
+        #
+        #     for i in range(self.bins):
+        #         intervals[i] = self.values[intervals[i]].measuredVal
+        #     intervals[self.bins - 1] = max_val
 
-            for i in range(self.bins):
-                intervals[i] = self.values[intervals[i]].measuredVal
-            intervals[self.bins - 1] = max_val
+        for i in range(math.floor(self.bins / 2 * 1)):
+            util_values = measured_val_array.copy()
+            util_binning(util_values, intervals)
+
+            measured_array = [0] * len(intervals)
+            for value in util_values:
+                measured_array[value] += 1
+            max_interval = measured_array.index(max(measured_array))
+
+            # max_interval = find_max_interval(util_values, intervals)
+            interval_val = intervals[max_interval]
+            if max_interval != 0:
+                pre_interval_val = intervals[max_interval - 1]
+            else:
+                pre_interval_val = min_val
+            pre_interval_val += (interval_val - pre_interval_val) / 2
+            intervals.insert(max_interval, pre_interval_val)
 
         self.intervals = intervals
-
         self.print_results("set_intervals", print_result)
 
     def split_values(self, splitting):
@@ -138,6 +161,18 @@ def find_interval(value, intervals):
         if value <= n:
             return i
     return len(intervals) - 1
+
+
+def find_max_interval(values, intervals):
+    measured_array = [0] * len(intervals)
+    for value in values:
+        measured_array[value.measuredVal] += 1
+    return measured_array.index(max(measured_array))
+
+
+def util_binning(values, intervals):
+    for i, value in enumerate(values):
+        values[i] = find_interval(value, intervals)
 
 
 def quick_sort(values, first, last):

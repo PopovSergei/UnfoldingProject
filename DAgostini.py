@@ -7,17 +7,21 @@ class DAgostini(UnfoldMethod):
     def __init__(self):
         super().__init__()
         self.result_array = None
+        self.results = None
 
     def real_init(self, migration_path, data_path, binning_type, custom_bins=0, splitting=0):
         super().init_migration_part(migration_path, binning_type, custom_bins, False)
 
         # Получение апостериорных данных из файла, запись в values. Изменяется: values
-        self.values = FileUsage.read_file(data_path, False)
+        measured_val_array = []
+        true_val_array = []
+        self.values = FileUsage.read_file(data_path, measured_val_array, true_val_array, False)
         super().binning()
         super().set_arrays(True)
+        self.results = []
 
         if splitting == 0:
-            self.result_array = d_agostini_algorithm(self.migration_matrix, self.measured_array, self.bins, True)
+            self.result_array = d_agostini_algorithm(self.migration_matrix, self.measured_array, self.results, self.bins, True)
         else:
             util_true_array = self.true_array.copy()
             util_measured_array = self.measured_array.copy()
@@ -28,7 +32,7 @@ class DAgostini(UnfoldMethod):
             for i in range(splitting):
                 self.values = values_array[i]
                 super().set_arrays(True)
-                pre_result = d_agostini_algorithm(self.migration_matrix, self.measured_array, self.bins, False)
+                pre_result = d_agostini_algorithm(self.migration_matrix, self.measured_array, self.results, self.bins, False)
                 for j in range(self.bins):
                     self.result_array[j] += pre_result[j]
 
@@ -38,7 +42,7 @@ class DAgostini(UnfoldMethod):
                 self.measured_array[i] = util_measured_array[i]
 
 
-def d_agostini_algorithm(migration_matrix, measured_array, bins, return_values):
+def d_agostini_algorithm(migration_matrix, measured_array, results, bins, return_values):
     efficiency_array = set_efficiency_array(migration_matrix, bins, False)
     distribution_array = [1 / bins] * bins
     result_array = [0] * bins
@@ -48,6 +52,7 @@ def d_agostini_algorithm(migration_matrix, measured_array, bins, return_values):
     while old_chi_square > new_chi_square > 0.05:
         unfolding_matrix = set_unfolding_matrix(migration_matrix, distribution_array, bins, False)
         result_array = set_result_array(efficiency_array, unfolding_matrix, measured_array, bins, False, True)
+        results.append(result_array.copy())
         old_distribution_array = distribution_array.copy()
 
         result_array_sum = sum(result_array)

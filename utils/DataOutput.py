@@ -18,6 +18,40 @@ def show_matrix(matrix, bins, int_vals):
     plt.show()
 
 
+def show_bar_charts(arrays, names, x_label="x_label", y_label="y_label", bins=0):
+    plt.close()
+    x = np.arange(bins)
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    length = len(arrays)
+    if length == 1:
+        pass
+    elif length == 2:
+        width = 0.3
+        ax.bar(x - width / 2, arrays[0], width, label=names[0], color="#6FAC9C")
+        ax.bar(x + width / 2, arrays[1], width, label=names[1], color="#9FD4C0")
+    elif length == 3:
+        width = 0.3
+        ax.bar(x - width, arrays[0], width, label=names[0], color="#6FAC9C")
+        ax.bar(x, arrays[1], width, label=names[1], color="#9FD4C0")
+        ax.bar(x + width, arrays[2], width, label=names[2], color="#D0E8B4")
+    elif length == 4:
+        pass
+    else:
+        width = 0.18
+        ax.bar(x - 2 * width, arrays[-5], width, label=names[-5], color="#324D5E")
+        ax.bar(x - width, arrays[-4], width, label=names[-4], color="#3FB39E")
+        ax.bar(x, arrays[-3], width, label=names[-3], color="#EFCA3E")
+        ax.bar(x + width, arrays[-2], width, label=names[-2], color="#E57A36")
+        ax.bar(x + 2 * width, arrays[-1], width, label=names[-1], color="#E24745")
+
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_xticks(x)
+    ax.legend()
+    plt.show()
+
+
 def show_bar_chart(
         first_array, second_array, third_array=None,
         first_name="", second_name="", third_name=None,
@@ -28,8 +62,8 @@ def show_bar_chart(
     width = 0.3
     fig, ax = plt.subplots(figsize=(10, 5))
     if third_array is None and third_name is None:
-        ax.bar(x - width / 2, first_array, width, label=first_name)
-        ax.bar(x + width / 2, second_array, width, label=second_name)
+        ax.bar(x - width / 2, first_array, width, label=first_name, color="#6FAC9C")
+        ax.bar(x + width / 2, second_array, width, label=second_name, color="#9FD4C0")
     else:
         ax.bar(x - width, first_array, width, label=first_name, color="#6FAC9C")
         ax.bar(x, second_array, width, label=second_name, color="#9FD4C0")
