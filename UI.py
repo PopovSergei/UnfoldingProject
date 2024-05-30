@@ -63,16 +63,8 @@ def show_result(algorithm, result_style):
                 [d_agostini.migration_measured_array, d_agostini.migration_true_array,
                  d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array],
                 ['PriorMeasured', 'PriorTrue', 'Measured', 'True', 'Result'],
-                "Bins", "Events", d_agostini.bins
+                "Bins", "Events", 0, d_agostini.bins
             )
-
-            # DataOutput.show_bar_chart_5(
-            #     d_agostini.migration_measured_array, d_agostini.migration_true_array,
-            #     d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
-            #     'PriorMeasured', 'PriorTrue',
-            #     'Measured', 'True', 'Result',
-            #     d_agostini.bins
-            # )
         else:
             DataOutput.show_bar_chart(
                 d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
@@ -81,21 +73,23 @@ def show_result(algorithm, result_style):
             )
 
 
-def show_results(algorithm):
+def show_iterations(algorithm):
     if check_not_ready(algorithm.get()):
         return
 
     if algorithm.get() == d_agostini_str:
-        if len(d_agostini.results) == 2:
-            first_result = []
-            second_result = []
-            for i in range(d_agostini.bins):
-                first_result.append(abs(d_agostini.true_array[i] - d_agostini.results[0][i]))
-                second_result.append(abs(d_agostini.true_array[i] - d_agostini.results[1][i]))
+        arrays = [[]]
+        names = ["Measured"]
+        for j in range(d_agostini.bins):
+            arrays[0].append(abs(d_agostini.true_array[j] - d_agostini.measured_array[j]))
 
-            DataOutput.show_bar_charts(
-                [first_result, second_result], ["First", "Second"], "Bins", "Fault", d_agostini.bins
-            )
+        for i in range(len(d_agostini.results)):
+            names.append(f"{i}")
+            arrays.append([])
+            for j in range(d_agostini.bins):
+                arrays[i + 1].append(abs(d_agostini.true_array[j] - d_agostini.results[i][j]))
+
+        DataOutput.show_bar_charts(arrays, names, "Bins", "Fault", 1, d_agostini.bins)
 
 
 def show_migration_matrix(algorithm):
@@ -226,6 +220,7 @@ class Window(Tk):
 
         self.draw_button("Пуск", 8, 0,
                          lambda: find_result(self.algorithm, self.binning_type, self.custom_bins, self.splitting))
+        self.draw_button("Гист итер", 8, 1, lambda: show_iterations(self.algorithm))
 
         self.draw_button("Гистограмма результата", 9, 0,
                          lambda: show_result(self.algorithm, self.result_style))

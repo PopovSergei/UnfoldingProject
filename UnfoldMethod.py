@@ -6,7 +6,7 @@ from utils import DataOutput, FileUsage
 
 class UnfoldMethod:
     def __init__(self):
-        self.values = None  # Массив объектов с двумя полями trueVal и measuredVal
+        # self.values = None  # Массив объектов с двумя полями trueVal и measuredVal
         self.bins = None  # Количество бинов
         self.intervals = None  # Значения верхних границ интервалов (бинов)
         self.migration_measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине (априор)
@@ -77,27 +77,12 @@ class UnfoldMethod:
             self.bins = 40
 
         intervals = []
-        interval = (max_val - min_val) / (math.ceil(self.bins / 2))
+        interval = (max_val - min_val) / (math.ceil(self.bins / 2 * 1))
         interval_counter = interval + min_val
 
         while interval_counter <= max_val:
             intervals.append(interval_counter)
             interval_counter += interval
-
-        # if binning_type:
-        #     return
-        # else:
-        #     elements_in_interval = int(len(self.values) / self.bins)
-        #     interval_counter = elements_in_interval
-        #     for i in range(self.bins):
-        #         intervals.append(interval_counter)
-        #         interval_counter += elements_in_interval
-        #
-        #     quick_sort(self.values, 0, len(self.values) - 1)
-        #
-        #     for i in range(self.bins):
-        #         intervals[i] = self.values[intervals[i]].measuredVal
-        #     intervals[self.bins - 1] = max_val
 
         for i in range(math.floor(self.bins / 2 * 1)):
             util_values = measured_val_array.copy()
@@ -152,7 +137,7 @@ class UnfoldMethod:
         elif case == "set_intervals":
             print("\n\n")
             print(f"Bins={self.bins}")
-            DataOutput.print_array("Intervals:", self.intervals)
+            DataOutput.print_array("Intervals:", self.intervals, 2)
             print()
 
 
