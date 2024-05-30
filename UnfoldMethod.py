@@ -18,11 +18,9 @@ class UnfoldMethod:
 
     def init_migration_part(self, migration_path, binning_type, custom_bins, baron_style):
         # Получение априорных данных из файла, запись в values. Изменяется: values
-        measured_val_array = []
-        true_val_array = []
-        self.values = FileUsage.read_file(migration_path, measured_val_array, true_val_array, False)
+        self.values = FileUsage.read_file(migration_path, False)
         self.bins = custom_bins
-        self.set_intervals(binning_type, measured_val_array, true_val_array, True)
+        self.set_intervals(binning_type, True)
         self.binning()
         self.set_pre_migration_matrix(False)
         self.set_migration_matrix(baron_style, False)
@@ -37,7 +35,7 @@ class UnfoldMethod:
             self.migration_measured_array[value.measuredVal] += 1
             self.pre_migration_matrix[value.trueVal][value.measuredVal] += 1
 
-        self.print_results("set_pre_migration_matrix", print_result)
+        self.print_migration_results("set_pre_migration_matrix", print_result)
 
     # Используются: values, bins, true_array или measured_array, pre_migration_matrix. Изменяются: migration_matrix
     def set_migration_matrix(self, baron_style, print_result):
@@ -51,7 +49,7 @@ class UnfoldMethod:
                     if self.migration_measured_array[j] > 0:
                         self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.migration_measured_array[j]
 
-        self.print_results("set_migration_matrix", print_result)
+        self.print_migration_results("set_migration_matrix", print_result)
 
     # Используются: values, bins. Изменяются: true_array, measured_array
     def set_arrays(self, print_result):
@@ -61,10 +59,10 @@ class UnfoldMethod:
             self.true_array[value.trueVal] += 1
             self.measured_array[value.measuredVal] += 1
 
-        self.print_results("set_arrays", print_result)
+        self.print_migration_results("set_arrays", print_result)
 
     # Задание интервалов. Используется, может сортироваться: values. Изменяются: bins, intervals
-    def set_intervals(self, binning_type, measured_val_array, true_val_array, print_result):
+    def set_intervals(self, binning_type, print_result):
         min_val = 100
         max_val = 0
         for value in self.values:
@@ -85,15 +83,14 @@ class UnfoldMethod:
             interval_counter += interval
 
         for i in range(math.floor(self.bins / 2 * 1)):
-            util_values = measured_val_array.copy()
-            util_binning(util_values, intervals)
+            measured_vals_array = get_measured_vals_array(self.values)
+            util_binning(measured_vals_array, intervals)
 
             measured_array = [0] * len(intervals)
-            for value in util_values:
+            for value in measured_vals_array:
                 measured_array[value] += 1
             max_interval = measured_array.index(max(measured_array))
 
-            # max_interval = find_max_interval(util_values, intervals)
             interval_val = intervals[max_interval]
             if max_interval != 0:
                 pre_interval_val = intervals[max_interval - 1]
@@ -103,7 +100,7 @@ class UnfoldMethod:
             intervals.insert(max_interval, pre_interval_val)
 
         self.intervals = intervals
-        self.print_results("set_intervals", print_result)
+        self.print_migration_results("set_intervals", print_result)
 
     def split_values(self, splitting):
         more_values = []
@@ -120,7 +117,7 @@ class UnfoldMethod:
             value.measuredVal = find_interval(value.measuredVal, self.intervals)
             value.trueVal = find_interval(value.trueVal, self.intervals)
 
-    def print_results(self, case, print_result):
+    def print_migration_results(self, case, print_result):
         if not print_result:
             return
         if case == "set_pre_migration_matrix":
@@ -148,30 +145,13 @@ def find_interval(value, intervals):
     return len(intervals) - 1
 
 
-def find_max_interval(values, intervals):
-    measured_array = [0] * len(intervals)
-    for value in values:
-        measured_array[value.measuredVal] += 1
-    return measured_array.index(max(measured_array))
-
-
 def util_binning(values, intervals):
     for i, value in enumerate(values):
         values[i] = find_interval(value, intervals)
 
 
-def quick_sort(values, first, last):
-    if first >= last:
-        return
-    i, j = first, last
-    pivot = values[random.randint(first, last)]
-    while i <= j:
-        while values[i].measuredVal < pivot.measuredVal:
-            i += 1
-        while values[j].measuredVal > pivot.measuredVal:
-            j -= 1
-        if i <= j:
-            values[i], values[j] = values[j], values[i]
-            i, j = i + 1, j - 1
-    quick_sort(values, first, j)
-    quick_sort(values, i, last)
+def get_measured_vals_array(values):
+    measured_val_array = []
+    for value in values:
+        measured_val_array.append(value.measuredVal)
+    return measured_val_array

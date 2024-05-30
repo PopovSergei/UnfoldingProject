@@ -15,9 +15,7 @@ class Baron(UnfoldMethod):
 
         self.set_efficiency_and_acceptance(True)
 
-        measured_val_array = []
-        true_val_array = []
-        self.values = FileUsage.read_file(data_path, measured_val_array, true_val_array, False)
+        self.values = FileUsage.read_file(data_path, False)
         super().binning()
         super().set_arrays(True)
 
