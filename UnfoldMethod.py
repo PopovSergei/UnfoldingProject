@@ -6,7 +6,7 @@ from utils import DataOutput, FileUsage
 
 class UnfoldMethod:
     def __init__(self):
-        # self.values = None  # Массив объектов с двумя полями trueVal и measuredVal
+        self.values = None  # Массив объектов с двумя полями trueVal и measuredVal
         self.bins = None  # Количество бинов
         self.intervals = None  # Значения верхних границ интервалов (бинов)
         self.migration_measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине (априор)
