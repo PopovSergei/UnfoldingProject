@@ -15,23 +15,23 @@ class DAgostini(UnfoldMethod):
     def real_init(self, migration_path, data_path, binning_type, custom_bins=0, splitting=0):
         super().init_migration_part(migration_path, binning_type, custom_bins, False)
 
-        # Получение апостериорных данных из файла, запись в values. Изменяется: values
-        self.values = FileUsage.read_file(data_path, False)
-        super().binning()
-        super().set_arrays(True)
+        # Получение апостериорных данных из файла, запись в posterior_values. Изменяется: posterior_values
+        self.posterior_values = FileUsage.read_file(data_path, False)
+        super().binning(self.posterior_values)
+        super().set_posterior_arrays(True)
 
         if splitting == 0:
             self.d_agostini_algorithm()
         else:
             util_true_array = self.true_array.copy()
             util_measured_array = self.measured_array.copy()
-            util_values_len = len(self.values)
+            util_values_len = len(self.posterior_values)
             results_array = [0] * self.bins
 
             values_array = super().split_values(splitting)
             for i in range(splitting):
-                self.values = values_array[i]
-                super().set_arrays(True)
+                self.prior_values = values_array[i]
+                super().set_posterior_arrays(True)
                 self.d_agostini_algorithm()
                 for j in range(self.bins):
                     results_array[j] += self.distribution_array[j]
@@ -59,7 +59,7 @@ class DAgostini(UnfoldMethod):
                 self.distribution_array[j] = self.result_array[j] / result_array_sum
 
             old_chi_square = new_chi_square
-            new_chi_square = find_chi_square(self.distribution_array, old_distribution_array, self.bins)
+            new_chi_square = self.find_chi_square(old_distribution_array)
 
             self.print_algorithm_results(False, False, True, True, True, old_chi_square, new_chi_square)
 
@@ -110,10 +110,9 @@ class DAgostini(UnfoldMethod):
         if chi:
             print(f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n")
 
-
-def find_chi_square(distribution, old_distribution, bins):
-    chi_square = 0
-    for i in range(bins):
-        if old_distribution[i] != 0:
-            chi_square += ((distribution[i] - old_distribution[i]) ** 2) / old_distribution[i]
-    return chi_square
+    def find_chi_square(self, old_distribution):
+        chi_square = 0
+        for i in range(self.bins):
+            if old_distribution[i] != 0:
+                chi_square += ((self.distribution_array[i] - old_distribution[i]) ** 2) / old_distribution[i]
+        return chi_square

@@ -60,7 +60,7 @@ def show_result(algorithm, result_style):
     if algorithm.get() == d_agostini_str:
         if result_style.get():
             DataOutput.show_bar_charts(
-                [d_agostini.migration_measured_array, d_agostini.migration_true_array,
+                [d_agostini.prior_measured_array, d_agostini.prior_true_array,
                  d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array],
                 ['PriorMeasured', 'PriorTrue', 'Measured', 'True', 'Result'],
                 "Bins", "Events", 0, d_agostini.bins

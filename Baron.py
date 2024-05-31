@@ -15,9 +15,9 @@ class Baron(UnfoldMethod):
 
         self.set_efficiency_and_acceptance(True)
 
-        self.values = FileUsage.read_file(data_path, False)
-        super().binning()
-        super().set_arrays(True)
+        self.posterior_values = FileUsage.read_file(data_path, False)
+        super().binning(self.posterior_values)
+        super().set_posterior_arrays(True)
 
         baron_algorithm(self.migration_matrix, self.efficiency_array, self.acceptance_array,
                         self.measured_array, self.true_array, self.bins)
@@ -26,8 +26,8 @@ class Baron(UnfoldMethod):
         self.efficiency_array = [0] * self.bins
         self.acceptance_array = [0] * self.bins
         for i in range(self.bins):
-            self.efficiency_array[i] = self.pre_migration_matrix[i][i] / self.migration_true_array[i]
-            self.acceptance_array[i] = self.pre_migration_matrix[i][i] / self.migration_measured_array[i]
+            self.efficiency_array[i] = self.pre_migration_matrix[i][i] / self.prior_true_array[i]
+            self.acceptance_array[i] = self.pre_migration_matrix[i][i] / self.prior_measured_array[i]
 
         if print_result:
             DataOutput.print_array("Efficiency:", self.efficiency_array, 4)
