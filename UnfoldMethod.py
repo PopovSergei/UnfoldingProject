@@ -63,7 +63,7 @@ class UnfoldMethod:
             DataOutput.print_array("Meas:", self.measured_array)
             print()
 
-    # Задание интервалов. Используется, может сортироваться: prior_values. Изменяются: bins, intervals
+    # Задание интервалов. Используется: prior_values. Изменяются: bins, intervals
     def set_intervals(self, binning_type):
         min_val = 100
         max_val = 0
@@ -77,14 +77,14 @@ class UnfoldMethod:
             self.bins = 40
 
         intervals = []
-        interval = (max_val - min_val) / (math.ceil(self.bins / 2 * 1))
+        interval = (max_val - min_val) / (math.ceil(self.bins / 40 * 35))
         interval_counter = interval + min_val
 
-        while interval_counter <= max_val:
+        while round(interval_counter, 5) <= max_val:
             intervals.append(interval_counter)
             interval_counter += interval
 
-        for i in range(math.floor(self.bins / 2 * 1)):
+        for i in range(math.floor(self.bins / 40 * 5)):
             measured_vals_array = get_measured_vals_array(self.prior_values)
             util_binning(measured_vals_array, intervals)
 
@@ -93,13 +93,20 @@ class UnfoldMethod:
                 measured_array[value] += 1
             max_interval = measured_array.index(max(measured_array))
 
-            interval_val = intervals[max_interval]
-            if max_interval != 0:
-                pre_interval_val = intervals[max_interval - 1]
-            else:
-                pre_interval_val = min_val
-            pre_interval_val += (interval_val - pre_interval_val) / 2
-            intervals.insert(max_interval, pre_interval_val)
+            split_max_interval(intervals, max_interval, min_val)
+
+        for i in range(0):
+            measured_vals_array = get_measured_vals_array(self.prior_values)
+            util_binning(measured_vals_array, intervals)
+
+            measured_array = [0] * len(intervals)
+            for value in measured_vals_array:
+                measured_array[value] += 1
+            max_interval = measured_array.index(max(measured_array))
+            min_interval = measured_array.index(min(measured_array))
+
+            remove_min_interval(intervals, min_interval, measured_array)
+            #  split_max_interval(intervals, max_interval, min_val)
 
         self.intervals = intervals
 
@@ -107,7 +114,7 @@ class UnfoldMethod:
         more_values = []
         for i in range(splitting):
             more_values.append([])
-            for value in self.prior_values:
+            for value in self.posterior_values:
                 if random.randint(0, 2) < 2:
                     more_values[i].append(value)
         return more_values
@@ -150,3 +157,24 @@ def get_measured_vals_array(values):
     for value in values:
         measured_val_array.append(value.measuredVal)
     return measured_val_array
+
+
+def remove_min_interval(intervals, min_interval, measured_array):
+    if min_interval == 0:
+        intervals.pop(0)
+    elif min_interval == len(intervals) - 1:
+        intervals.pop(-2)
+    elif measured_array[min_interval - 1] < measured_array[min_interval + 1]:
+        intervals.pop(min_interval - 1)
+    else:
+        intervals.pop(min_interval)
+
+
+def split_max_interval(intervals, max_interval, min_val):
+    interval_val = intervals[max_interval]
+    if max_interval != 0:
+        pre_interval_val = intervals[max_interval - 1]
+    else:
+        pre_interval_val = min_val
+    pre_interval_val += (interval_val - pre_interval_val) / 2
+    intervals.insert(max_interval, pre_interval_val)

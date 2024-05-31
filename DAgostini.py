@@ -30,7 +30,7 @@ class DAgostini(UnfoldMethod):
 
             values_array = super().split_values(splitting)
             for i in range(splitting):
-                self.prior_values = values_array[i]
+                self.posterior_values = values_array[i]
                 super().set_posterior_arrays(True)
                 self.d_agostini_algorithm()
                 for j in range(self.bins):
