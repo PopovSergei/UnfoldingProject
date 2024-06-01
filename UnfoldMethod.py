@@ -73,9 +73,6 @@ class UnfoldMethod:
         min_val = math.floor(min_val)
         max_val = math.ceil(max_val)
 
-        if self.bins == 0:
-            self.bins = 40
-
         intervals = []
         interval = (max_val - min_val) / self.bins
         interval_counter = interval + min_val
@@ -88,29 +85,9 @@ class UnfoldMethod:
 
         for i in range(split_max):
             intervals_correction("split", self.prior_values, intervals, min_val)
-            # measured_vals_array = get_measured_vals_array(self.prior_values)
-            # util_binning(measured_vals_array, intervals)
-            #
-            # measured_array = [0] * len(intervals)
-            # for value in measured_vals_array:
-            #     measured_array[value] += 1
-            # max_interval = measured_array.index(max(measured_array))
-
-            # split_max_interval(intervals, max_interval, min_val)
 
         for i in range(remove_min):
             intervals_correction("remove", self.prior_values, intervals, min_val)
-            # measured_vals_array = get_measured_vals_array(self.prior_values)
-            # util_binning(measured_vals_array, intervals)
-            #
-            # measured_array = [0] * len(intervals)
-            # for value in measured_vals_array:
-            #     measured_array[value] += 1
-            # max_interval = measured_array.index(max(measured_array))
-            # min_interval = measured_array.index(min(measured_array))
-
-            # remove_min_interval(intervals, min_interval, measured_array)
-            #  split_max_interval(intervals, max_interval, min_val)
 
         self.intervals = intervals
 
