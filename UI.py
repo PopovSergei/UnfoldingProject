@@ -8,10 +8,12 @@ from utils import DataOutput
 
 # migration_path = "resources/test_1.txt"
 # data_path = "resources/test_2.txt"
-migration_path = "resources/first_part2.txt"
-data_path = "resources/second_part2.txt"
+# migration_path = "resources/first_part2.txt"
+# data_path = "resources/second_part2.txt"
 # migration_path = "resources/sim_p_2.txt"
 # data_path = "resources/sim_p_2.txt"
+migration_path = "resources/first_half.txt"
+data_path = "resources/second_half.txt"
 
 d_agostini_str = "Д\'Агостини"
 baron_str = "Барон"
@@ -34,17 +36,25 @@ def find_data_to_unfold():
         data_path = filepath
 
 
-def find_result(algorithm, binning_type, custom_bins, splitting):
+def find_result(algorithm, binning_type, custom_bins, split_max, remove_min, splitting):
     try:
-        user_custom_bins = int(custom_bins.get())
-        user_splitting = int(splitting.get())
+        user_custom_bins = abs(int(custom_bins.get()))
+        user_split_max = abs(int(split_max.get()))
+        user_remove_min = abs(int(remove_min.get()))
+        user_splitting = abs(int(splitting.get()))
     except ValueError:
-        mb.showinfo("Информация", "Ошибка в задании бинов или усреднения")
+        mb.showinfo("Информация", "Ошибка в полях ввода. Доступны только целые числа")
+        return
+
+    if user_custom_bins + user_split_max - user_remove_min < 1:
+        mb.showinfo("Информация", "Неправильно заданы бины")
         return
 
     if migration_path != "" and data_path != "":
         if algorithm.get() == d_agostini_str:
-            d_agostini.real_init(migration_path, data_path, binning_type.get(), user_custom_bins, user_splitting)
+            d_agostini.real_init(
+                migration_path, data_path, binning_type.get(), user_custom_bins,
+                user_split_max, user_remove_min, user_splitting)
         elif algorithm.get() == baron_str:
             baron.real_init(migration_path, data_path, user_custom_bins)
     elif migration_path == "":
@@ -156,12 +166,14 @@ class Window(Tk):
 
         for c in range(2):
             self.columnconfigure(index=c, weight=1)
-        for r in range(11):
+        for r in range(9):
             self.rowconfigure(index=r, weight=1)
 
         self.algorithm = StringVar(value=d_agostini_str)
         self.chk_btn_enabled = IntVar(value=1)
-        self.custom_bins = StringVar(value="0")
+        self.custom_bins = StringVar(value="35")
+        self.split_max = StringVar(value="5")
+        self.remove_min = StringVar(value="0")
         self.splitting = StringVar(value="0")
         self.result_style = BooleanVar(value=True)
         self.binning_type = BooleanVar(value=True)
@@ -202,32 +214,40 @@ class Window(Tk):
         self.draw_button("Матрицы миграций", 1, 0, find_migration_data)
         self.draw_button("Обратной свёртки", 1, 1, find_data_to_unfold)
 
-        self.draw_label("Алгоритм:", 2, 0, 2)
+        # self.draw_label("Алгоритм:", 2, 0, 2)
+        #
+        # self.draw_radio_button(d_agostini_str, 3, 0, d_agostini_str, self.algorithm)
+        # self.draw_radio_button(baron_str, 3, 1, baron_str, self.algorithm)
 
-        self.draw_radio_button(d_agostini_str, 3, 0, d_agostini_str, self.algorithm)
-        self.draw_radio_button(baron_str, 3, 1, baron_str, self.algorithm)
+        # self.draw_label("Тип биннинга:", 4, 0, 2)
+        #
+        # self.draw_radio_button("Одинаковый", 5, 0, True, self.binning_type)
+        # self.draw_radio_button("Равномерный", 5, 1, False, self.binning_type)
 
-        self.draw_label("Тип биннинга:", 4, 0, 2)
+        self.draw_label("Одинаковые бины:", 2, 0)
+        self.draw_entry(2, 1, self.custom_bins)
 
-        self.draw_radio_button("Одинаковый", 5, 0, True, self.binning_type)
-        self.draw_radio_button("Равномерный", 5, 1, False, self.binning_type)
+        self.draw_label("Разбить макс. бин", 3, 0)
+        self.draw_label("Сложить мин. бин", 3, 1)
 
-        self.draw_label("Бины (0-авто):", 6, 0)
-        self.draw_entry(6, 1, self.custom_bins)
+        self.draw_entry(4, 0, self.split_max)
+        self.draw_entry(4, 1, self.remove_min)
 
-        self.draw_label("Усреднение (0-без):", 7, 0)
-        self.draw_entry(7, 1, self.splitting)
+        self.draw_label("Усреднение (0-без):", 5, 0)
+        self.draw_entry(5, 1, self.splitting)
 
-        self.draw_button("Пуск", 8, 0,
-                         lambda: find_result(self.algorithm, self.binning_type, self.custom_bins, self.splitting))
-        self.draw_button("Гист итер", 8, 1, lambda: show_iterations(self.algorithm))
+        self.draw_button("Пуск", 6, 0,
+                         lambda: find_result(
+                             self.algorithm, self.binning_type, self.custom_bins,
+                             self.split_max, self.remove_min, self.splitting))
+        self.draw_button("Гист итер", 6, 1, lambda: show_iterations(self.algorithm))
 
-        self.draw_button("Гистограмма результата", 9, 0,
+        self.draw_button("Гистограмма результата", 7, 0,
                          lambda: show_result(self.algorithm, self.result_style))
-        self.draw_button("Матрица миграций", 9, 1, lambda: show_migration_matrix(self.algorithm))
+        self.draw_button("Матрица миграций", 7, 1, lambda: show_migration_matrix(self.algorithm))
 
-        self.draw_button("Рассчитать погрешность", 10, 0, lambda: calculate_fault(self.algorithm))
-        self.draw_button("Матрица премигр.", 10, 1, lambda: show_pre_migration_matrix(self.algorithm))
+        self.draw_button("Рассчитать погрешность", 8, 0, lambda: calculate_fault(self.algorithm))
+        self.draw_button("Матрица премигр.", 8, 1, lambda: show_pre_migration_matrix(self.algorithm))
 
     def draw_label(self, text, row, column, column_span=1):
         Label(

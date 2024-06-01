@@ -12,8 +12,8 @@ class DAgostini(UnfoldMethod):
         self.distribution_array = None
         self.results = None
 
-    def real_init(self, migration_path, data_path, binning_type, custom_bins=0, splitting=0):
-        super().init_migration_part(migration_path, binning_type, custom_bins, False)
+    def real_init(self, migration_path, data_path, binning_type, custom_bins=0, split_max=0, remove_min=0, splitting=0):
+        super().init_migration_part(migration_path, binning_type, custom_bins, split_max, remove_min,  False)
 
         # Получение апостериорных данных из файла, запись в posterior_values. Изменяется: posterior_values
         self.posterior_values = FileUsage.read_file(data_path, False)

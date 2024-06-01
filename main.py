@@ -1,6 +1,6 @@
 import DAgostini
 import Baron
-import utils
+from utils import FileUsage
 from UI import Window
 
 filePath = "resources/text.txt"
@@ -16,6 +16,9 @@ second_path1 = "resources/second_part1.txt"
 
 first_path2 = "resources/first_part2.txt"
 second_path2 = "resources/second_part2.txt"
+
+first_half = "resources/first_half.txt"
+second_half = "resources/second_half.txt"
 
 if __name__ == '__main__':
     # Запуск UI

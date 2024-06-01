@@ -17,11 +17,11 @@ class UnfoldMethod:
         self.measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине (апостериор)
         self.true_array = None  # Массив с количеством событий, которые должны были попость в каждый бин (апостериор)
 
-    def init_migration_part(self, migration_path, binning_type, custom_bins, baron_style):
+    def init_migration_part(self, migration_path, binning_type, custom_bins, split_max, remove_min, baron_style):
         # Получение априорных данных из файла, запись в prior_values. Изменяется: prior_values
         self.prior_values = FileUsage.read_file(migration_path, False)
         self.bins = custom_bins
-        self.set_intervals(binning_type)
+        self.set_intervals(binning_type, split_max, remove_min)
         self.binning(self.prior_values)
         self.set_pre_migration_matrix()
         self.set_migration_matrix(baron_style)
@@ -64,7 +64,7 @@ class UnfoldMethod:
             print()
 
     # Задание интервалов. Используется: prior_values. Изменяются: bins, intervals
-    def set_intervals(self, binning_type):
+    def set_intervals(self, binning_type, split_max, remove_min):
         min_val = 100
         max_val = 0
         for value in self.prior_values:
@@ -77,35 +77,39 @@ class UnfoldMethod:
             self.bins = 40
 
         intervals = []
-        interval = (max_val - min_val) / (math.ceil(self.bins / 40 * 35))
+        interval = (max_val - min_val) / self.bins
         interval_counter = interval + min_val
+
+        self.bins = self.bins + split_max - remove_min
 
         while round(interval_counter, 5) <= max_val:
             intervals.append(interval_counter)
             interval_counter += interval
 
-        for i in range(math.floor(self.bins / 40 * 5)):
-            measured_vals_array = get_measured_vals_array(self.prior_values)
-            util_binning(measured_vals_array, intervals)
+        for i in range(split_max):
+            intervals_correction("split", self.prior_values, intervals, min_val)
+            # measured_vals_array = get_measured_vals_array(self.prior_values)
+            # util_binning(measured_vals_array, intervals)
+            #
+            # measured_array = [0] * len(intervals)
+            # for value in measured_vals_array:
+            #     measured_array[value] += 1
+            # max_interval = measured_array.index(max(measured_array))
 
-            measured_array = [0] * len(intervals)
-            for value in measured_vals_array:
-                measured_array[value] += 1
-            max_interval = measured_array.index(max(measured_array))
+            # split_max_interval(intervals, max_interval, min_val)
 
-            split_max_interval(intervals, max_interval, min_val)
+        for i in range(remove_min):
+            intervals_correction("remove", self.prior_values, intervals, min_val)
+            # measured_vals_array = get_measured_vals_array(self.prior_values)
+            # util_binning(measured_vals_array, intervals)
+            #
+            # measured_array = [0] * len(intervals)
+            # for value in measured_vals_array:
+            #     measured_array[value] += 1
+            # max_interval = measured_array.index(max(measured_array))
+            # min_interval = measured_array.index(min(measured_array))
 
-        for i in range(0):
-            measured_vals_array = get_measured_vals_array(self.prior_values)
-            util_binning(measured_vals_array, intervals)
-
-            measured_array = [0] * len(intervals)
-            for value in measured_vals_array:
-                measured_array[value] += 1
-            max_interval = measured_array.index(max(measured_array))
-            min_interval = measured_array.index(min(measured_array))
-
-            remove_min_interval(intervals, min_interval, measured_array)
+            # remove_min_interval(intervals, min_interval, measured_array)
             #  split_max_interval(intervals, max_interval, min_val)
 
         self.intervals = intervals
@@ -157,6 +161,22 @@ def get_measured_vals_array(values):
     for value in values:
         measured_val_array.append(value.measuredVal)
     return measured_val_array
+
+
+def intervals_correction(case, prior_values, intervals, min_val):
+    measured_vals_array = get_measured_vals_array(prior_values)
+    util_binning(measured_vals_array, intervals)
+
+    measured_array = [0] * len(intervals)
+    for value in measured_vals_array:
+        measured_array[value] += 1
+    max_interval = measured_array.index(max(measured_array))
+    min_interval = measured_array.index(min(measured_array))
+
+    if case == "split":
+        split_max_interval(intervals, max_interval, min_val)
+    elif case == "remove":
+        remove_min_interval(intervals, min_interval, measured_array)
 
 
 def remove_min_interval(intervals, min_interval, measured_array):
