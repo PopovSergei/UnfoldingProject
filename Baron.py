@@ -10,8 +10,8 @@ class Baron(UnfoldMethod):
         self.efficiency_array = None
         self.acceptance_array = None
 
-    def real_init(self, migration_path, data_path, binning_type, custom_bins=0):
-        super().init_migration_part(migration_path, binning_type, custom_bins, True)
+    def real_init(self, migration_path, data_path, custom_bins=0):
+        super().init_migration_part(migration_path, custom_bins, True)
 
         self.set_efficiency_and_acceptance(True)
 

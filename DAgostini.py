@@ -12,8 +12,9 @@ class DAgostini(UnfoldMethod):
         self.distribution_array = None
         self.results = None
 
-    def real_init(self, migration_path, data_path, binning_type, custom_bins=0, split_max=0, remove_min=0, splitting=0):
-        super().init_migration_part(migration_path, binning_type, custom_bins, split_max, remove_min,  False)
+    def real_init(self, migration_path, data_path,
+                  custom_bins=10, split_max=0, remove_min=0, accuracy=0.05, splitting=0):
+        super().init_migration_part(migration_path, custom_bins, split_max, remove_min,  False)
 
         # Получение апостериорных данных из файла, запись в posterior_values. Изменяется: posterior_values
         self.posterior_values = FileUsage.read_file(data_path, False)
@@ -21,7 +22,7 @@ class DAgostini(UnfoldMethod):
         super().set_posterior_arrays(True)
 
         if splitting == 0:
-            self.d_agostini_algorithm()
+            self.d_agostini_algorithm(accuracy)
         else:
             util_true_array = self.true_array.copy()
             util_measured_array = self.measured_array.copy()
@@ -32,7 +33,7 @@ class DAgostini(UnfoldMethod):
             for i in range(splitting):
                 self.posterior_values = values_array[i]
                 super().set_posterior_arrays(True)
-                self.d_agostini_algorithm()
+                self.d_agostini_algorithm(accuracy)
                 for j in range(self.bins):
                     results_array[j] += self.distribution_array[j]
 
@@ -41,14 +42,14 @@ class DAgostini(UnfoldMethod):
                 self.true_array[i] = util_true_array[i]
                 self.measured_array[i] = util_measured_array[i]
 
-    def d_agostini_algorithm(self):
+    def d_agostini_algorithm(self, accuracy):
         self.results = []
         self.set_efficiency_array()
         self.distribution_array = [1 / self.bins] * self.bins
         new_chi_square = 100
         old_chi_square = 101
 
-        while old_chi_square > new_chi_square > 0.05:
+        while old_chi_square > new_chi_square > accuracy:
             self.set_unfolding_matrix()
             self.set_result_array(False)
             self.results.append(self.result_array.copy())

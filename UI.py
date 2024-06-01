@@ -36,25 +36,30 @@ def find_data_to_unfold():
         data_path = filepath
 
 
-def find_result(algorithm, binning_type, custom_bins, split_max, remove_min, splitting):
+def find_result(algorithm, custom_bins, split_max, remove_min, accuracy, splitting):
     try:
         user_custom_bins = abs(int(custom_bins.get()))
         user_split_max = abs(int(split_max.get()))
         user_remove_min = abs(int(remove_min.get()))
+        user_accuracy = abs(float(accuracy.get()))
         user_splitting = abs(int(splitting.get()))
     except ValueError:
-        mb.showinfo("Информация", "Ошибка в полях ввода. Доступны только целые числа")
+        mb.showinfo("Информация", "Ошибка в полях ввода")
         return
 
     if user_custom_bins + user_split_max - user_remove_min < 1:
         mb.showinfo("Информация", "Неправильно заданы бины")
         return
 
+    if user_custom_bins == 0:
+        mb.showinfo("Информация", "Одинаковых бинов должно быть больше чем 0")
+        return
+
     if migration_path != "" and data_path != "":
         if algorithm.get() == d_agostini_str:
             d_agostini.real_init(
-                migration_path, data_path, binning_type.get(), user_custom_bins,
-                user_split_max, user_remove_min, user_splitting)
+                migration_path, data_path, user_custom_bins,
+                user_split_max, user_remove_min, user_accuracy, user_splitting)
         elif algorithm.get() == baron_str:
             baron.real_init(migration_path, data_path, user_custom_bins)
     elif migration_path == "":
@@ -134,8 +139,12 @@ def calculate_fault(algorithm):
             sum_of_differences_measured += abs(d_agostini.measured_array[i] - d_agostini.true_array[i])
         result_fault = round(sum_of_differences_result / d_agostini.bins, 4)
         measured_fault = round(sum_of_differences_measured / d_agostini.bins, 4)
-        efficiency = result_fault / (measured_fault / 100)
-        efficiency = int(100 - round(efficiency, 0))
+        if measured_fault != 0:
+            efficiency = result_fault / (measured_fault / 100)
+            efficiency = int(100 - round(efficiency, 0))
+        else:
+            efficiency = 0
+
         mb.showinfo("Погрешность",
                     f"Погрешность результата: {result_fault} событий\n" +
                     f"Погрешность измерения: {measured_fault} событий\n" +
@@ -166,7 +175,7 @@ class Window(Tk):
 
         for c in range(2):
             self.columnconfigure(index=c, weight=1)
-        for r in range(9):
+        for r in range(10):
             self.rowconfigure(index=r, weight=1)
 
         self.algorithm = StringVar(value=d_agostini_str)
@@ -174,9 +183,9 @@ class Window(Tk):
         self.custom_bins = StringVar(value="35")
         self.split_max = StringVar(value="5")
         self.remove_min = StringVar(value="0")
+        self.accuracy = StringVar(value="0.05")
         self.splitting = StringVar(value="0")
         self.result_style = BooleanVar(value=True)
-        self.binning_type = BooleanVar(value=True)
 
         self.bg_color = "#f1fafd"
         self.text_color = "#313e43"
@@ -219,11 +228,6 @@ class Window(Tk):
         # self.draw_radio_button(d_agostini_str, 3, 0, d_agostini_str, self.algorithm)
         # self.draw_radio_button(baron_str, 3, 1, baron_str, self.algorithm)
 
-        # self.draw_label("Тип биннинга:", 4, 0, 2)
-        #
-        # self.draw_radio_button("Одинаковый", 5, 0, True, self.binning_type)
-        # self.draw_radio_button("Равномерный", 5, 1, False, self.binning_type)
-
         self.draw_label("Одинаковые бины:", 2, 0)
         self.draw_entry(2, 1, self.custom_bins)
 
@@ -233,21 +237,24 @@ class Window(Tk):
         self.draw_entry(4, 0, self.split_max)
         self.draw_entry(4, 1, self.remove_min)
 
-        self.draw_label("Усреднение (0-без):", 5, 0)
-        self.draw_entry(5, 1, self.splitting)
+        self.draw_label("Точность:", 5, 0)
+        self.draw_entry(5, 1, self.accuracy)
 
-        self.draw_button("Пуск", 6, 0,
+        self.draw_label("Усреднение (0-без):", 6, 0)
+        self.draw_entry(6, 1, self.splitting)
+
+        self.draw_button("Пуск", 7, 0,
                          lambda: find_result(
-                             self.algorithm, self.binning_type, self.custom_bins,
-                             self.split_max, self.remove_min, self.splitting))
-        self.draw_button("Гист итер", 6, 1, lambda: show_iterations(self.algorithm))
+                             self.algorithm, self.custom_bins,
+                             self.split_max, self.remove_min, self.accuracy, self.splitting))
+        self.draw_button("Гист итер", 7, 1, lambda: show_iterations(self.algorithm))
 
-        self.draw_button("Гистограмма результата", 7, 0,
+        self.draw_button("Гистограмма результата", 8, 0,
                          lambda: show_result(self.algorithm, self.result_style))
-        self.draw_button("Матрица миграций", 7, 1, lambda: show_migration_matrix(self.algorithm))
+        self.draw_button("Матрица миграций", 8, 1, lambda: show_migration_matrix(self.algorithm))
 
-        self.draw_button("Рассчитать погрешность", 8, 0, lambda: calculate_fault(self.algorithm))
-        self.draw_button("Матрица премигр.", 8, 1, lambda: show_pre_migration_matrix(self.algorithm))
+        self.draw_button("Рассчитать погрешность", 9, 0, lambda: calculate_fault(self.algorithm))
+        self.draw_button("Матрица премигр.", 9, 1, lambda: show_pre_migration_matrix(self.algorithm))
 
     def draw_label(self, text, row, column, column_span=1):
         Label(
