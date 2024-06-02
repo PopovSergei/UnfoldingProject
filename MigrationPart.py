@@ -1,28 +1,25 @@
 import math
-import random
 
 from utils import DataOutput, FileUsage
 
 
-class UnfoldMethod:
-    def __init__(self):
-        self.prior_values = None  # Массив априорных объектов с двумя полями trueVal и measuredVal
-        self.posterior_values = None  # Массив апостериорных объектов с (двумя) полями (trueVal) и measuredVal
-        self.bins = None  # Количество бинов
-        self.intervals = None  # Значения верхних границ интервалов (бинов)
-        self.prior_measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине (априор)
-        self.prior_true_array = None  # Массив с количеством событий, которые должны были попость в каждый бин (апр)
-        self.pre_migration_matrix = None  # Матрица до деления
-        self.migration_matrix = None  # Матрица после деления
-        self.measured_array = None  # Массив с количеством событий, зарегестрированных в каждом бине (апостериор)
-        self.true_array = None  # Массив с количеством событий, которые должны были попость в каждый бин (апостериор)
-
-    def init_migration_part(self, migration_path, custom_bins, split_max, remove_min, baron_style):
-        # Получение априорных данных из файла, запись в prior_values. Изменяется: prior_values
+class MigrationPart:
+    def __init__(self, migration_path, custom_bins, split_max, remove_min, baron_style):
+        # Массив априорных объектов с двумя полями trueVal и measuredVal
         self.prior_values = FileUsage.read_file(migration_path, False)
-        self.bins = custom_bins
-        self.set_intervals(split_max, remove_min)
-        self.binning(self.prior_values)
+        self.bins = custom_bins  # Количество бинов
+        self.intervals = self.set_intervals(split_max, remove_min)  # Значения верхних границ интервалов (бинов)
+        self.prior_binning()
+
+        # Массив с количеством априорных событий, зарегестрированных в каждом бине
+        self.prior_measured_array = [0] * self.bins
+        # Массив с количеством априорных событий, которые должны были попость в каждый бин
+        self.prior_true_array = [0] * self.bins
+        # Матрица миграций до деления
+        self.pre_migration_matrix = [[0] * self.bins for _ in range(self.bins)]
+        # Матрица миграций после деления
+        self.migration_matrix = [[0] * self.bins for _ in range(self.bins)]
+
         self.set_pre_migration_matrix()
         self.set_migration_matrix(baron_style)
 
@@ -30,9 +27,6 @@ class UnfoldMethod:
 
     # Используются: prior_values, bins. Изменяются: prior_true_array, prior_measured_array, pre_migration_matrix
     def set_pre_migration_matrix(self):
-        self.prior_true_array = [0] * self.bins
-        self.prior_measured_array = [0] * self.bins
-        self.pre_migration_matrix = [[0] * self.bins for _ in range(self.bins)]
         for value in self.prior_values:
             self.prior_true_array[value.trueVal] += 1
             self.prior_measured_array[value.measuredVal] += 1
@@ -40,7 +34,6 @@ class UnfoldMethod:
 
     # Используются: bins, prior_true_array или prior_measured_array, pre_migration_matrix. Изменяются: migration_matrix
     def set_migration_matrix(self, baron_style):
-        self.migration_matrix = [[0] * self.bins for _ in range(self.bins)]
         for i in range(self.bins):
             for j in range(self.bins):
                 if not baron_style:
@@ -49,19 +42,6 @@ class UnfoldMethod:
                 else:
                     if self.prior_measured_array[j] > 0:
                         self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.prior_measured_array[j]
-
-    # Используются: posterior_values, bins. Изменяются: true_array, measured_array
-    def set_posterior_arrays(self, print_result):
-        self.true_array = [0] * self.bins
-        self.measured_array = [0] * self.bins
-        for value in self.posterior_values:
-            self.true_array[value.trueVal] += 1
-            self.measured_array[value.measuredVal] += 1
-
-        if print_result:
-            DataOutput.print_array("True:", self.true_array)
-            DataOutput.print_array("Meas:", self.measured_array)
-            print()
 
     # Задание интервалов. Используется: prior_values. Изменяются: bins, intervals
     def set_intervals(self, split_max, remove_min):
@@ -92,20 +72,11 @@ class UnfoldMethod:
             for i in range(remove_min):
                 intervals_correction("remove", measured_vals_array.copy(), intervals, min_val)
 
-        self.intervals = intervals
-
-    def split_values(self, splitting):
-        more_values = []
-        for i in range(splitting):
-            more_values.append([])
-            for value in self.posterior_values:
-                if random.randint(0, 2) < 2:
-                    more_values[i].append(value)
-        return more_values
+        return intervals
 
     # Замена значений на номера бинов в values. Используется: intervals.
-    def binning(self, values):
-        for value in values:
+    def prior_binning(self):
+        for value in self.prior_values:
             value.measuredVal = find_interval(value.measuredVal, self.intervals)
             value.trueVal = find_interval(value.trueVal, self.intervals)
 

@@ -1,119 +1,116 @@
-from UnfoldMethod import UnfoldMethod
+from tkinter import messagebox as mb
+
+from MigrationPart import MigrationPart
+from UnfoldingPart import UnfoldingPart
 from utils import DataOutput
-from utils import FileUsage
 
 
-class DAgostini(UnfoldMethod):
+class DAgostini:
     def __init__(self):
-        super().__init__()
-        self.efficiency_array = None
-        self.unfolding_matrix = None
-        self.result_array = None
-        self.distribution_array = None
-        self.results = None
+        self.have_result = False
+        self.migration_part = None
+        self.unfolding_part = None
 
-    def real_init(self, migration_path, data_path,
-                  custom_bins=10, split_max=0, remove_min=0, accuracy=0.05, splitting=0):
-        super().init_migration_part(migration_path, custom_bins, split_max, remove_min,  False)
+    def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting):
+        if migration_path == "":
+            mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
+        elif data_path == "":
+            mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
 
-        # Получение апостериорных данных из файла, запись в posterior_values. Изменяется: posterior_values
-        self.posterior_values = FileUsage.read_file(data_path, False)
-        super().binning(self.posterior_values)
-        super().set_posterior_arrays(True)
+        try:
+            user_custom_bins = abs(int(custom_bins.get()))
+            user_split_max = abs(int(split_max.get()))
+            user_remove_min = abs(int(remove_min.get()))
+            user_accuracy = abs(float(accuracy.get()))
+            user_splitting = abs(int(splitting.get()))
+        except ValueError:
+            mb.showinfo("Информация", "Ошибка в полях ввода")
+            return
 
-        if splitting == 0:
-            self.d_agostini_algorithm(accuracy)
+        if user_custom_bins + user_split_max - user_remove_min < 1:
+            mb.showinfo("Информация", "Неправильно заданы бины")
+            return
+
+        if user_custom_bins == 0:
+            mb.showinfo("Информация", "Одинаковых бинов должно быть больше чем 0")
+            return
+
+        self.migration_part = MigrationPart(migration_path, user_custom_bins, user_split_max, user_remove_min, False)
+        self.unfolding_part = UnfoldingPart(data_path, self.migration_part.bins, self.migration_part.intervals,
+                                            self.migration_part.migration_matrix, user_splitting, user_accuracy)
+        self.have_result = True
+
+    def show_result(self, result_style):
+        if self.check_not_ready():
+            return
+
+        if result_style.get():
+            DataOutput.show_bar_charts(
+                [self.migration_part.prior_measured_array, self.migration_part.prior_true_array,
+                 self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array],
+                ['PriorMeasured', 'PriorTrue', 'Measured', 'True', 'Result'],
+                "Bins", "Events", 0, self.unfolding_part.bins
+            )
         else:
-            util_true_array = self.true_array.copy()
-            util_measured_array = self.measured_array.copy()
-            util_values_len = len(self.posterior_values)
-            results_array = [0] * self.bins
+            DataOutput.show_bar_chart(
+                self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array,
+                'Measured', 'True', 'Result',
+                'Bins', 'Events', self.unfolding_part.bins
+            )
 
-            values_array = super().split_values(splitting)
-            for i in range(splitting):
-                self.posterior_values = values_array[i]
-                super().set_posterior_arrays(True)
-                self.d_agostini_algorithm(accuracy)
-                for j in range(self.bins):
-                    results_array[j] += self.distribution_array[j]
+    def show_iterations(self):
+        if self.check_not_ready():
+            return
 
-            for i in range(self.bins):
-                self.result_array[i] = results_array[i] / splitting * util_values_len
-                self.true_array[i] = util_true_array[i]
-                self.measured_array[i] = util_measured_array[i]
+        arrays = [[]]
+        names = ["Measured"]
+        for j in range(self.unfolding_part.bins):
+            arrays[0].append(abs(self.unfolding_part.true_array[j] - self.unfolding_part.measured_array[j]))
 
-    def d_agostini_algorithm(self, accuracy):
-        self.results = []
-        self.set_efficiency_array()
-        self.distribution_array = [1 / self.bins] * self.bins
-        new_chi_square = 100
-        old_chi_square = 101
+        for i in range(len(self.unfolding_part.results)):
+            names.append(f"{i}")
+            arrays.append([])
+            for j in range(self.unfolding_part.bins):
+                arrays[i + 1].append(abs(self.unfolding_part.true_array[j] - self.unfolding_part.results[i][j]))
 
-        while old_chi_square > new_chi_square > accuracy:
-            self.set_unfolding_matrix()
-            self.set_result_array(False)
-            self.results.append(self.result_array.copy())
-            old_distribution_array = self.distribution_array.copy()
+        DataOutput.show_bar_charts(arrays, names, "Bins", "Fault", 1, self.unfolding_part.bins)
 
-            result_array_sum = sum(self.result_array)
-            for j in range(self.bins):
-                self.distribution_array[j] = self.result_array[j] / result_array_sum
+    def show_migration_matrix(self):
+        if self.check_not_ready():
+            return
+        DataOutput.show_matrix(self.migration_part.migration_matrix, self.migration_part.bins, False)
 
-            old_chi_square = new_chi_square
-            new_chi_square = self.find_chi_square(old_distribution_array)
+    def show_pre_migration_matrix(self):
+        if self.check_not_ready():
+            return
+        DataOutput.show_matrix(self.migration_part.pre_migration_matrix, self.migration_part.bins, True)
 
-            self.print_algorithm_results(False, False, True, True, True, old_chi_square, new_chi_square)
+    def calculate_fault(self):
+        if self.check_not_ready():
+            return
 
-    def set_unfolding_matrix(self):
-        self.unfolding_matrix = [[0] * self.bins for _ in range(self.bins)]
-        for i in range(self.bins):
-            for j in range(self.bins):
-                numerator = self.migration_matrix[i][j] * self.distribution_array[i]
-                denominator = 0
-
-                for k in range(self.bins):
-                    sum_l = 0
-                    for l in range(self.bins):
-                        sum_l += self.migration_matrix[k][l] * self.distribution_array[l]
-                    denominator += self.migration_matrix[k][j] * sum_l
-
-                if denominator != 0:
-                    self.unfolding_matrix[j][i] = numerator / denominator
-
-    def set_result_array(self, use_eff):
-        self.result_array = [0] * self.bins
-        for i in range(self.bins):
-            expected = 0
-            for j in range(self.bins):
-                expected += self.unfolding_matrix[j][i] * self.measured_array[j]
-            if use_eff and self.efficiency_array[i] != 0:
-                self.result_array[i] = (1 / self.efficiency_array[i]) * expected
-            else:
-                self.result_array[i] = expected
-
-    def set_efficiency_array(self):
-        self.efficiency_array = [0] * self.bins
-        for j in range(self.bins):
+        sum_of_differences_result = 0
+        sum_of_differences_measured = 0
+        for i in range(self.unfolding_part.bins):
+            sum_of_differences_result += abs(self.unfolding_part.result_array[i] - self.unfolding_part.true_array[i])
+            sum_of_differences_measured += abs(self.unfolding_part.measured_array[i] - self.unfolding_part.true_array[i])
+        result_fault = round(sum_of_differences_result / self.unfolding_part.bins, 4)
+        measured_fault = round(sum_of_differences_measured / self.unfolding_part.bins, 4)
+        if measured_fault != 0:
+            efficiency = result_fault / (measured_fault / 100)
+            efficiency = int(100 - round(efficiency, 0))
+        else:
             efficiency = 0
-            for k in range(self.bins):
-                efficiency += self.migration_matrix[k][j]
-            self.efficiency_array[j] = efficiency
 
-    def print_algorithm_results(self, eff, unf, res, dis, chi, old_chi_square, new_chi_square):
-        if eff:
-            DataOutput.print_array("Efficiency:", self.efficiency_array, 2)
-        if unf:
-            DataOutput.print_matrix(self.unfolding_matrix, self.bins, True)
-        if res:
-            DataOutput.print_array("Res:", self.result_array, 2)
-        if dis:
-            DataOutput.print_array("Distribution:", self.distribution_array, 2)
-        if chi:
-            print(f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n")
+        mb.showinfo("Погрешность",
+                    f"Погрешность результата: {result_fault} событий\n" +
+                    f"Погрешность измерения: {measured_fault} событий\n" +
+                    f"Эффективность: {efficiency}%"
+                    )
 
-    def find_chi_square(self, old_distribution):
-        chi_square = 0
-        for i in range(self.bins):
-            if old_distribution[i] != 0:
-                chi_square += ((self.distribution_array[i] - old_distribution[i]) ** 2) / old_distribution[i]
-        return chi_square
+    def check_not_ready(self):
+        if self.have_result is False:
+            mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
+            return True
+        else:
+            return False

@@ -1,10 +1,8 @@
 from tkinter import *
 from tkinter import filedialog
-from tkinter import messagebox as mb
 
 from Baron import Baron
 from DAgostini import DAgostini
-from utils import DataOutput
 
 # migration_path = "resources/test_1.txt"
 # data_path = "resources/test_2.txt"
@@ -34,136 +32,6 @@ def find_data_to_unfold():
     if filepath != "":
         global data_path
         data_path = filepath
-
-
-def find_result(algorithm, custom_bins, split_max, remove_min, accuracy, splitting):
-    try:
-        user_custom_bins = abs(int(custom_bins.get()))
-        user_split_max = abs(int(split_max.get()))
-        user_remove_min = abs(int(remove_min.get()))
-        user_accuracy = abs(float(accuracy.get()))
-        user_splitting = abs(int(splitting.get()))
-    except ValueError:
-        mb.showinfo("Информация", "Ошибка в полях ввода")
-        return
-
-    if user_custom_bins + user_split_max - user_remove_min < 1:
-        mb.showinfo("Информация", "Неправильно заданы бины")
-        return
-
-    if user_custom_bins == 0:
-        mb.showinfo("Информация", "Одинаковых бинов должно быть больше чем 0")
-        return
-
-    if migration_path != "" and data_path != "":
-        if algorithm.get() == d_agostini_str:
-            d_agostini.real_init(
-                migration_path, data_path, user_custom_bins,
-                user_split_max, user_remove_min, user_accuracy, user_splitting)
-        elif algorithm.get() == baron_str:
-            baron.real_init(migration_path, data_path, user_custom_bins)
-    elif migration_path == "":
-        mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
-    elif data_path == "":
-        mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
-
-
-def show_result(algorithm, result_style):
-    if check_not_ready(algorithm.get()):
-        return
-
-    if algorithm.get() == d_agostini_str:
-        if result_style.get():
-            DataOutput.show_bar_charts(
-                [d_agostini.prior_measured_array, d_agostini.prior_true_array,
-                 d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array],
-                ['PriorMeasured', 'PriorTrue', 'Measured', 'True', 'Result'],
-                "Bins", "Events", 0, d_agostini.bins
-            )
-        else:
-            DataOutput.show_bar_chart(
-                d_agostini.measured_array, d_agostini.true_array, d_agostini.result_array,
-                'Measured', 'True', 'Result',
-                'Bins', 'Events', d_agostini.bins
-            )
-
-
-def show_iterations(algorithm):
-    if check_not_ready(algorithm.get()):
-        return
-
-    if algorithm.get() == d_agostini_str:
-        arrays = [[]]
-        names = ["Measured"]
-        for j in range(d_agostini.bins):
-            arrays[0].append(abs(d_agostini.true_array[j] - d_agostini.measured_array[j]))
-
-        for i in range(len(d_agostini.results)):
-            names.append(f"{i}")
-            arrays.append([])
-            for j in range(d_agostini.bins):
-                arrays[i + 1].append(abs(d_agostini.true_array[j] - d_agostini.results[i][j]))
-
-        DataOutput.show_bar_charts(arrays, names, "Bins", "Fault", 1, d_agostini.bins)
-
-
-def show_migration_matrix(algorithm):
-    if check_not_ready(algorithm.get()):
-        return
-
-    if algorithm.get() == d_agostini_str:
-        DataOutput.show_matrix(d_agostini.migration_matrix, d_agostini.bins, False)
-    elif algorithm.get() == baron_str:
-        DataOutput.show_matrix(baron.migration_matrix, baron.bins, False)
-
-
-def show_pre_migration_matrix(algorithm):
-    if check_not_ready(algorithm.get()):
-        return
-
-    if algorithm.get() == d_agostini_str:
-        DataOutput.show_matrix(d_agostini.pre_migration_matrix, d_agostini.bins, True)
-    elif algorithm.get() == baron_str:
-        DataOutput.show_matrix(baron.pre_migration_matrix, baron.bins, True)
-
-
-def calculate_fault(algorithm):
-    if check_not_ready(algorithm.get()):
-        return
-
-    if algorithm.get() == d_agostini_str:
-        sum_of_differences_result = 0
-        sum_of_differences_measured = 0
-        for i in range(d_agostini.bins):
-            sum_of_differences_result += abs(d_agostini.result_array[i] - d_agostini.true_array[i])
-            sum_of_differences_measured += abs(d_agostini.measured_array[i] - d_agostini.true_array[i])
-        result_fault = round(sum_of_differences_result / d_agostini.bins, 4)
-        measured_fault = round(sum_of_differences_measured / d_agostini.bins, 4)
-        if measured_fault != 0:
-            efficiency = result_fault / (measured_fault / 100)
-            efficiency = int(100 - round(efficiency, 0))
-        else:
-            efficiency = 0
-
-        mb.showinfo("Погрешность",
-                    f"Погрешность результата: {result_fault} событий\n" +
-                    f"Погрешность измерения: {measured_fault} событий\n" +
-                    f"Эффективность: {efficiency}%"
-                    )
-    elif algorithm.get() == baron_str:
-        mb.showinfo("Погрешность", "Пока нет")
-
-
-def check_not_ready(algorithm):
-    if algorithm == d_agostini_str:
-        if d_agostini.bins is None:
-            mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
-            return True
-    elif algorithm == baron_str:
-        if baron.bins is None:
-            mb.showinfo("Информация", "Сначала укажите все параметры,\nнажмите пуск и дождитесь выполнения")
-            return True
-    return False
 
 
 class Window(Tk):
@@ -243,18 +111,16 @@ class Window(Tk):
         self.draw_label("Усреднение (0-без):", 6, 0)
         self.draw_entry(6, 1, self.splitting)
 
-        self.draw_button("Пуск", 7, 0,
-                         lambda: find_result(
-                             self.algorithm, self.custom_bins,
-                             self.split_max, self.remove_min, self.accuracy, self.splitting))
-        self.draw_button("Гист итер", 7, 1, lambda: show_iterations(self.algorithm))
+        self.draw_button("Пуск", 7, 0, lambda: d_agostini.run(
+            migration_path, data_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy, self.splitting
+        ))
+        self.draw_button("Гист итер", 7, 1, d_agostini.show_iterations)
 
-        self.draw_button("Гистограмма результата", 8, 0,
-                         lambda: show_result(self.algorithm, self.result_style))
-        self.draw_button("Матрица миграций", 8, 1, lambda: show_migration_matrix(self.algorithm))
+        self.draw_button("Гистограмма результата", 8, 0, lambda: d_agostini.show_result(self.result_style))
+        self.draw_button("Матрица миграций", 8, 1, d_agostini.show_migration_matrix)
 
-        self.draw_button("Рассчитать погрешность", 9, 0, lambda: calculate_fault(self.algorithm))
-        self.draw_button("Матрица премигр.", 9, 1, lambda: show_pre_migration_matrix(self.algorithm))
+        self.draw_button("Рассчитать погрешность", 9, 0, d_agostini.calculate_fault)
+        self.draw_button("Матрица премигр.", 9, 1, d_agostini.show_pre_migration_matrix)
 
     def draw_label(self, text, row, column, column_span=1):
         Label(

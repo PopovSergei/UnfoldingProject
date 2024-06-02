@@ -1,26 +1,30 @@
-from UnfoldMethod import UnfoldMethod
+from MigrationPart import MigrationPart
 from utils import DataOutput
 from utils import FileUsage
 import math
 
 
-class Baron(UnfoldMethod):
+class Baron:
     def __init__(self):
-        super().__init__()
+        self.bins = None
+        self.pre_migration_matrix = None
+        self.prior_true_array = None
+        self.prior_measured_array = None
+
         self.efficiency_array = None
         self.acceptance_array = None
 
     def real_init(self, migration_path, data_path, custom_bins=0):
-        super().init_migration_part(migration_path, custom_bins, True)
+        # super().set_migration_part(migration_path, custom_bins, True)
 
         self.set_efficiency_and_acceptance(True)
 
-        self.posterior_values = FileUsage.read_file(data_path, False)
-        super().binning(self.posterior_values)
-        super().set_posterior_arrays(True)
-
-        baron_algorithm(self.migration_matrix, self.efficiency_array, self.acceptance_array,
-                        self.measured_array, self.true_array, self.bins)
+        # self.posterior_values = FileUsage.read_file(data_path, False)
+        # super().binning(self.posterior_values)
+        # super().set_posterior_arrays(True)
+        #
+        # baron_algorithm(self.migration_matrix, self.efficiency_array, self.acceptance_array,
+        #                 self.measured_array, self.true_array, self.bins)
 
     def set_efficiency_and_acceptance(self, print_result):
         self.efficiency_array = [0] * self.bins

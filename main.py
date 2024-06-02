@@ -1,5 +1,4 @@
 import DAgostini
-import Baron
 from utils import FileUsage
 from UI import Window
 
@@ -31,7 +30,3 @@ if __name__ == '__main__':
     # Запуск алгоритма Д'Агостини
     # dagostini = DAgostini.DAgostini()
     # dagostini.real_init(first_path2, second_path2)
-
-    # Запуск алгоритма Барона
-    # baron = Baron.Baron()
-    # baron.real_init(first_path2, second_path2)
