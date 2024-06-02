@@ -6,7 +6,7 @@ from utils import FileUsage, DataOutput
 class UnfoldingPart:
     def __init__(self, data_path, bins, intervals, migration_matrix, splitting, accuracy):
         # Массив апостериорных объектов с (двумя) полями (trueVal) и measuredVal
-        self.posterior_values = FileUsage.read_file(data_path, False)
+        self.posterior_values = FileUsage.read_file(data_path)
         self.bins = bins
         self.intervals = intervals
         self.migration_matrix = migration_matrix

@@ -4,7 +4,7 @@ class Value:
         self.trueVal = true_val
 
 
-def read_file(file_path, print_result):
+def read_file(file_path):
     values = []
     with open(file_path, encoding="UTF-8") as file:
         for line in file:
@@ -13,11 +13,6 @@ def read_file(file_path, print_result):
                 values.append(Value(float(p[0]), float(p[1])))
             except ValueError as e:
                 print(e)
-
-    if print_result:
-        for value in values:
-            print(value.measuredVal, value.trueVal)
-
     return values
 
 

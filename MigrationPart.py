@@ -6,7 +6,7 @@ from utils import DataOutput, FileUsage
 class MigrationPart:
     def __init__(self, migration_path, custom_bins, split_max, remove_min, baron_style):
         # Массив априорных объектов с двумя полями trueVal и measuredVal
-        self.prior_values = FileUsage.read_file(migration_path, False)
+        self.prior_values = FileUsage.read_file(migration_path)
         self.bins = custom_bins  # Количество бинов
         self.intervals = self.set_intervals(split_max, remove_min)  # Значения верхних границ интервалов (бинов)
         self.prior_binning()

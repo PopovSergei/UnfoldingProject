@@ -1,3 +1,4 @@
+from tkinter import *
 from tkinter import messagebox as mb
 
 from MigrationPart import MigrationPart
@@ -11,11 +12,13 @@ class DAgostini:
         self.migration_part = None
         self.unfolding_part = None
 
-    def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting):
+    def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting, text_area):
         if migration_path == "":
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
+            return
         elif data_path == "":
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
+            return
 
         try:
             user_custom_bins = abs(int(custom_bins.get()))
@@ -40,6 +43,16 @@ class DAgostini:
                                             self.migration_part.migration_matrix, user_splitting, user_accuracy)
         self.have_result = True
 
+        # self.text_result(text_area)
+
+    def text_result(
+            self, text_area,
+            inter, pre_mig, mig,
+            eff, unf, res, dis, chi
+        ):
+        self.have_result = True
+        text_area.insert(END, "\nBye World")
+
     def show_result(self, result_style):
         if self.check_not_ready():
             return
@@ -48,14 +61,13 @@ class DAgostini:
             DataOutput.show_bar_charts(
                 [self.migration_part.prior_measured_array, self.migration_part.prior_true_array,
                  self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array],
-                ['PriorMeasured', 'PriorTrue', 'Measured', 'True', 'Result'],
-                "Bins", "Events", 0, self.unfolding_part.bins
-            )
+                ["Априор. Изм.", "Априор. Ист.", "Измеренные", "Истинные", "Результат"],
+                "Бины", "События", 0)
         else:
-            DataOutput.show_bar_chart(
-                self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array,
-                'Measured', 'True', 'Result',
-                'Bins', 'Events', self.unfolding_part.bins
+            DataOutput.show_bar_charts(
+                [self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array],
+                ["Измеренные", "Истинные", "Результат"],
+                "Бины", "События", self.unfolding_part.bins
             )
 
     def show_iterations(self):
@@ -63,7 +75,7 @@ class DAgostini:
             return
 
         arrays = [[]]
-        names = ["Measured"]
+        names = ["Измеренные"]
         for j in range(self.unfolding_part.bins):
             arrays[0].append(abs(self.unfolding_part.true_array[j] - self.unfolding_part.measured_array[j]))
 
@@ -73,7 +85,7 @@ class DAgostini:
             for j in range(self.unfolding_part.bins):
                 arrays[i + 1].append(abs(self.unfolding_part.true_array[j] - self.unfolding_part.results[i][j]))
 
-        DataOutput.show_bar_charts(arrays, names, "Bins", "Fault", 1, self.unfolding_part.bins)
+        DataOutput.show_bar_charts(arrays, names, "Бины", "Ошибочные события", 1)
 
     def show_migration_matrix(self):
         if self.check_not_ready():

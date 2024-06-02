@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+from tkinter import ttk
 
 from Baron import Baron
 from DAgostini import DAgostini
@@ -34,14 +35,18 @@ def find_data_to_unfold():
         data_path = filepath
 
 
+def write_smf(editor):
+    editor.insert(END, "\nBye World")  # вставка в конец
+
+
 class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title("Обратная свёртка")
-        self.geometry("500x470")
+        self.geometry("950x470")
         self.resizable(False, False)
 
-        for c in range(2):
+        for c in range(3):
             self.columnconfigure(index=c, weight=1)
         for r in range(10):
             self.rowconfigure(index=r, weight=1)
@@ -63,6 +68,8 @@ class Window(Tk):
         self.active_btn_text_color = "#B3E5F4"
 
         self.custom_font = ("Comic Sans MS", 15, "bold")  # Arial  Comic Sans MS  Tahoma
+
+        self.text_area = None
 
     def run(self):
         self.draw_menu()
@@ -99,10 +106,10 @@ class Window(Tk):
         self.draw_label("Одинаковые бины:", 2, 0)
         self.draw_entry(2, 1, self.custom_bins)
 
-        self.draw_label("Разбить макс. бин", 3, 0)
-        self.draw_label("Сложить мин. бин", 3, 1)
+        self.draw_label("Разбить макс. бин:", 3, 0)
+        self.draw_entry(3, 1, self.split_max)
 
-        self.draw_entry(4, 0, self.split_max)
+        self.draw_label("Сложить мин. бин:", 4, 0)
         self.draw_entry(4, 1, self.remove_min)
 
         self.draw_label("Точность:", 5, 0)
@@ -112,7 +119,8 @@ class Window(Tk):
         self.draw_entry(6, 1, self.splitting)
 
         self.draw_button("Пуск", 7, 0, lambda: d_agostini.run(
-            migration_path, data_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy, self.splitting
+            migration_path, data_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy, self.splitting,
+            self.text_area
         ))
         self.draw_button("Гист итер", 7, 1, d_agostini.show_iterations)
 
@@ -121,6 +129,15 @@ class Window(Tk):
 
         self.draw_button("Рассчитать погрешность", 9, 0, d_agostini.calculate_fault)
         self.draw_button("Матрица премигр.", 9, 1, d_agostini.show_pre_migration_matrix)
+
+        self.text_area = Text(width=53, height=27, wrap="none")
+        self.text_area.grid(row=0, column=2, rowspan=11, columnspan=2, ipadx=6, ipady=6, padx=23, pady=23, sticky=NW)
+        ys = ttk.Scrollbar(orient="vertical", command=self.text_area.yview)
+        ys.grid(row=0, column=3, rowspan=10, sticky=NS)
+        xs = ttk.Scrollbar(orient="horizontal", command=self.text_area.xview)
+        xs.grid(row=10, column=2, columnspan=2, sticky=EW)
+        self.text_area["yscrollcommand"] = ys.set
+        self.text_area["xscrollcommand"] = xs.set
 
     def draw_label(self, text, row, column, column_span=1):
         Label(
