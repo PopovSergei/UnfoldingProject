@@ -4,7 +4,7 @@ from utils import DataOutput, FileUsage
 
 
 class MigrationPart:
-    def __init__(self, migration_path, custom_bins, split_max, remove_min, baron_style):
+    def __init__(self, migration_path, custom_bins, split_max, remove_min, baron_style, inter, pre_mig, mig):
         # Массив априорных объектов с двумя полями trueVal и measuredVal
         self.prior_values = FileUsage.read_file(migration_path)
         self.bins = custom_bins  # Количество бинов
@@ -23,7 +23,8 @@ class MigrationPart:
         self.set_pre_migration_matrix()
         self.set_migration_matrix(baron_style)
 
-        self.print_migration_results(True, False, False)
+        self.result_string = ""
+        self.print_migration_results(inter, pre_mig, mig)
 
     # Используются: prior_values, bins. Изменяются: prior_true_array, prior_measured_array, pre_migration_matrix
     def set_pre_migration_matrix(self):
@@ -86,12 +87,20 @@ class MigrationPart:
             print(f"Bins={self.bins}")
             DataOutput.print_array("Intervals:", self.intervals, 2)
             print()
+            self.result_string += f"Bins={self.bins}\n"
+            self.result_string += DataOutput.array_to_string("Intervals:", self.intervals, 2)
+            self.result_string += "\n"
         if pre_mig:
+            self.result_string += DataOutput.matrix_to_string(self.pre_migration_matrix, self.bins, True)
+            self.result_string += DataOutput.array_to_string("MigrationTrue:", self.prior_true_array)
+            self.result_string += DataOutput.array_to_string("MigrationMeas:", self.prior_measured_array)
+            self.result_string += "\n"
             DataOutput.print_matrix(self.pre_migration_matrix, self.bins, False)
             DataOutput.print_array("MigrationTrue:", self.prior_true_array)
             DataOutput.print_array("MigrationMeas:", self.prior_measured_array)
             print()
         if mig:
+            self.result_string += DataOutput.matrix_to_string(self.migration_matrix, self.bins, True)
             DataOutput.print_matrix(self.migration_matrix, self.bins, True)
 
 

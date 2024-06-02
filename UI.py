@@ -52,13 +52,23 @@ class Window(Tk):
             self.rowconfigure(index=r, weight=1)
 
         self.algorithm = StringVar(value=d_agostini_str)
-        self.chk_btn_enabled = IntVar(value=1)
         self.custom_bins = StringVar(value="35")
         self.split_max = StringVar(value="5")
         self.remove_min = StringVar(value="0")
         self.accuracy = StringVar(value="0.05")
         self.splitting = StringVar(value="0")
+
         self.result_style = BooleanVar(value=True)
+
+        self.inter = BooleanVar(value=True)
+        self.pre_mig = BooleanVar(value=False)
+        self.mig = BooleanVar(value=False)
+
+        self.arr = BooleanVar(value=True)
+        self.unf = BooleanVar(value=False)
+        self.res = BooleanVar(value=True)
+        self.dis = BooleanVar(value=True)
+        self.chi = BooleanVar(value=True)
 
         self.bg_color = "#f1fafd"
         self.text_color = "#313e43"
@@ -68,6 +78,7 @@ class Window(Tk):
         self.active_btn_text_color = "#B3E5F4"
 
         self.custom_font = ("Comic Sans MS", 15, "bold")  # Arial  Comic Sans MS  Tahoma
+        self.text_area_font = ("Comic Sans MS", 10)  # Arial  Comic Sans MS  Tahoma
 
         self.text_area = None
 
@@ -85,10 +96,20 @@ class Window(Tk):
         app_menu.add_command(label="Тёмная тема", command=self.set_dark_theme)
 
         algorithm_menu = Menu(menu, tearoff=0)
-        algorithm_menu.add_checkbutton(label="Подробный результат", onvalue=1, offvalue=0, variable=self.result_style)
+        algorithm_menu.add_checkbutton(label="Подробный результат", variable=self.result_style)
+        algorithm_menu.add_separator()
+        algorithm_menu.add_checkbutton(label="Бины и интервалы", variable=self.inter)
+        algorithm_menu.add_checkbutton(label="Матрица премиграций", variable=self.pre_mig)
+        algorithm_menu.add_checkbutton(label="Матрица миграций", variable=self.mig)
+        algorithm_menu.add_separator()
+        algorithm_menu.add_checkbutton(label="Массивы ист. изм.", variable=self.arr)
+        algorithm_menu.add_checkbutton(label="Матрица обратной свёртки", variable=self.unf)
+        algorithm_menu.add_checkbutton(label="Результат", variable=self.res)
+        algorithm_menu.add_checkbutton(label="Распределение", variable=self.dis)
+        algorithm_menu.add_checkbutton(label="Хи квадрат", variable=self.chi)
 
         menu.add_cascade(label="Приложение", menu=app_menu)
-        menu.add_cascade(label="Алгоритм", menu=algorithm_menu)
+        menu.add_cascade(label="Вывод алгоритма", menu=algorithm_menu)
 
     def draw_widgets(self):
         self.config(bg=self.bg_color)
@@ -120,7 +141,8 @@ class Window(Tk):
 
         self.draw_button("Пуск", 7, 0, lambda: d_agostini.run(
             migration_path, data_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy, self.splitting,
-            self.text_area
+            self.text_area, self.inter.get(), self.pre_mig.get(), self.mig.get(), self.arr.get(), self.unf.get(),
+            self.res.get(), self.dis.get(), self.chi.get()
         ))
         self.draw_button("Гист итер", 7, 1, d_agostini.show_iterations)
 
@@ -130,7 +152,7 @@ class Window(Tk):
         self.draw_button("Рассчитать погрешность", 9, 0, d_agostini.calculate_fault)
         self.draw_button("Матрица премигр.", 9, 1, d_agostini.show_pre_migration_matrix)
 
-        self.text_area = Text(width=53, height=27, wrap="none")
+        self.text_area = Text(width=53, height=27, wrap="none", font=self.text_area_font)
         self.text_area.grid(row=0, column=2, rowspan=11, columnspan=2, ipadx=6, ipady=6, padx=23, pady=23, sticky=NW)
         ys = ttk.Scrollbar(orient="vertical", command=self.text_area.yview)
         ys.grid(row=0, column=3, rowspan=10, sticky=NS)

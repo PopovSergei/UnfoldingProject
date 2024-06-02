@@ -4,7 +4,7 @@ from utils import FileUsage, DataOutput
 
 
 class UnfoldingPart:
-    def __init__(self, data_path, bins, intervals, migration_matrix, splitting, accuracy):
+    def __init__(self, data_path, bins, intervals, migration_matrix, splitting, accuracy, arr, unf, res, dis, chi):
         # Массив апостериорных объектов с (двумя) полями (trueVal) и measuredVal
         self.posterior_values = FileUsage.read_file(data_path)
         self.bins = bins
@@ -12,11 +12,13 @@ class UnfoldingPart:
         self.migration_matrix = migration_matrix
         self.posterior_binning()
 
+        self.result_string = ""
+
         # Массив с количеством апостериорных событий, зарегестрированных в каждом бине
         self.measured_array = [0] * self.bins
         # Массив с количеством апостериорных событий, которые должны были попость в каждый бин
         self.true_array = [0] * self.bins
-        self.set_posterior_arrays(True)
+        self.set_posterior_arrays(arr)
 
         self.efficiency_array = self.set_efficiency_array()
         self.unfolding_matrix = None
@@ -25,7 +27,7 @@ class UnfoldingPart:
         self.results = []
 
         if splitting == 0:
-            self.d_agostini_algorithm(accuracy)
+            self.d_agostini_algorithm(accuracy, unf, res, dis, chi)
         else:
             util_true_array = self.true_array.copy()
             util_measured_array = self.measured_array.copy()
@@ -58,6 +60,9 @@ class UnfoldingPart:
             self.measured_array[value.measuredVal] += 1
 
         if print_result:
+            self.result_string += DataOutput.array_to_string("True:", self.true_array)
+            self.result_string += DataOutput.array_to_string("Meas:", self.measured_array)
+            self.result_string += "\n"
             DataOutput.print_array("True:", self.true_array)
             DataOutput.print_array("Meas:", self.measured_array)
             print()
@@ -71,7 +76,7 @@ class UnfoldingPart:
                     more_values[i].append(value)
         return more_values
 
-    def d_agostini_algorithm(self, accuracy):
+    def d_agostini_algorithm(self, accuracy, unf, res, dis, chi):
         new_chi_square = 100
         old_chi_square = 101
 
@@ -88,7 +93,7 @@ class UnfoldingPart:
             old_chi_square = new_chi_square
             new_chi_square = self.find_chi_square(old_distribution_array)
 
-            self.print_algorithm_results(False, False, True, True, True, old_chi_square, new_chi_square)
+            self.print_algorithm_results(unf, res, dis, chi, old_chi_square, new_chi_square)
 
     def set_unfolding_matrix(self):
         self.unfolding_matrix = [[0] * self.bins for _ in range(self.bins)]
@@ -126,16 +131,19 @@ class UnfoldingPart:
             efficiency_array[j] = efficiency
         return efficiency_array
 
-    def print_algorithm_results(self, eff, unf, res, dis, chi, old_chi_square, new_chi_square):
-        if eff:
-            DataOutput.print_array("Efficiency:", self.efficiency_array, 2)
+    def print_algorithm_results(self, unf, res, dis, chi, old_chi_square, new_chi_square):
         if unf:
+            self.result_string += DataOutput.matrix_to_string(self.unfolding_matrix, self.bins, True)
             DataOutput.print_matrix(self.unfolding_matrix, self.bins, True)
         if res:
+            self.result_string += DataOutput.array_to_string("Res:", self.result_array, 2)
             DataOutput.print_array("Res:", self.result_array, 2)
         if dis:
+            self.result_string += DataOutput.array_to_string("Distribution:", self.distribution_array, 2)
             DataOutput.print_array("Distribution:", self.distribution_array, 2)
         if chi:
+            self.result_string += \
+                f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n\n"
             print(f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n")
 
     def find_chi_square(self, old_distribution):

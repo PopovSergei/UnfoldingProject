@@ -12,7 +12,9 @@ class DAgostini:
         self.migration_part = None
         self.unfolding_part = None
 
-    def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting, text_area):
+    def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting, text_area,
+            inter, pre_mig, mig, arr, unf, res, dis, chi
+            ):
         if migration_path == "":
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
             return
@@ -38,20 +40,22 @@ class DAgostini:
             mb.showinfo("Информация", "Одинаковых бинов должно быть больше чем 0")
             return
 
-        self.migration_part = MigrationPart(migration_path, user_custom_bins, user_split_max, user_remove_min, False)
-        self.unfolding_part = UnfoldingPart(data_path, self.migration_part.bins, self.migration_part.intervals,
-                                            self.migration_part.migration_matrix, user_splitting, user_accuracy)
+        self.migration_part = MigrationPart(
+            migration_path, user_custom_bins, user_split_max, user_remove_min, False,inter, pre_mig, mig)
+        self.unfolding_part = UnfoldingPart(
+            data_path, self.migration_part.bins, self.migration_part.intervals, self.migration_part.migration_matrix,
+            user_splitting, user_accuracy, arr, unf, res, dis, chi)
         self.have_result = True
 
-        # self.text_result(text_area)
+        self.text_result(text_area)
 
     def text_result(
             self, text_area,
-            inter, pre_mig, mig,
-            eff, unf, res, dis, chi
-        ):
+            # inter, pre_mig, mig,
+            # arrays, eff, unf, res, dis, chi
+    ):
         self.have_result = True
-        text_area.insert(END, "\nBye World")
+        text_area.insert(END, self.migration_part.result_string + self.unfolding_part.result_string)
 
     def show_result(self, result_style):
         if self.check_not_ready():
@@ -105,7 +109,8 @@ class DAgostini:
         sum_of_differences_measured = 0
         for i in range(self.unfolding_part.bins):
             sum_of_differences_result += abs(self.unfolding_part.result_array[i] - self.unfolding_part.true_array[i])
-            sum_of_differences_measured += abs(self.unfolding_part.measured_array[i] - self.unfolding_part.true_array[i])
+            sum_of_differences_measured += abs(
+                self.unfolding_part.measured_array[i] - self.unfolding_part.true_array[i])
         result_fault = round(sum_of_differences_result / self.unfolding_part.bins, 4)
         measured_fault = round(sum_of_differences_measured / self.unfolding_part.bins, 4)
         if measured_fault != 0:
