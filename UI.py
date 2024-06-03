@@ -7,12 +7,13 @@ from DAgostini import DAgostini
 
 # migration_path = "resources/test_1.txt"
 # data_path = "resources/test_2.txt"
-# migration_path = "resources/first_part2.txt"
-# data_path = "resources/second_part2.txt"
+migration_path = "resources/first_part2.txt"
+data_path = "resources/second_part2.txt"
 # migration_path = "resources/sim_p_2.txt"
 # data_path = "resources/sim_p_2.txt"
-migration_path = "resources/first_half.txt"
-data_path = "resources/second_half.txt"
+
+# migration_path = "resources/first_half.txt"
+# data_path = "resources/second_half.txt"
 
 d_agostini_str = "Д\'Агостини"
 baron_str = "Барон"
@@ -33,10 +34,6 @@ def find_data_to_unfold():
     if filepath != "":
         global data_path
         data_path = filepath
-
-
-def write_smf(editor):
-    editor.insert(END, "\nBye World")  # вставка в конец
 
 
 class Window(Tk):

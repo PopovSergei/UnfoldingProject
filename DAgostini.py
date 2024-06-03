@@ -101,6 +101,14 @@ class DAgostini:
             return
         DataOutput.show_matrix(self.migration_part.pre_migration_matrix, self.migration_part.bins, True)
 
+    def show_intervals_stem(self):
+        if self.check_not_ready():
+            return
+        bins_array = []
+        for i in range(self.migration_part.bins):
+            bins_array.append(i)
+        DataOutput.show_stem(self.migration_part.intervals, bins_array, "Интервалы", "Бины")
+
     def calculate_fault(self):
         if self.check_not_ready():
             return

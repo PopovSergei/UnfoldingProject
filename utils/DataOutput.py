@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -76,6 +78,16 @@ def show_bar_charts(arrays, names, x_label, y_label, color_scheme=1):
     ax.set_ylabel(y_label)
     ax.set_xticks(x)
     ax.legend()
+    plt.show()
+
+
+def show_stem(x_array, y_array, x_label, y_label):
+    plt.close()
+    plt.stem(x_array, y_array, basefmt="C2-")
+    plt.xticks(np.arange(math.floor(min(x_array)), math.ceil(max(x_array)) + 1, 1.0))
+    plt.yticks(np.arange(math.floor(min(y_array)), math.ceil(max(y_array)) + 1, 1.0))
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.show()
 
 
