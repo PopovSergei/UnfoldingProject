@@ -6,14 +6,14 @@ from UnfoldingPart import UnfoldingPart
 from utils import DataOutput
 
 
-class DAgostini:
+class Algorithm:
     def __init__(self):
         self.have_result = False
         self.migration_part = None
         self.unfolding_part = None
 
     def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting, text_area,
-            inter, pre_mig, mig, arr, unf, res, dis, chi
+            inter, prior_arr, pre_mig, mig, post_arr, unf, res, dis, chi, hand_intervals, intervals_entry
             ):
         if migration_path == "":
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
@@ -40,22 +40,20 @@ class DAgostini:
             mb.showinfo("Информация", "Одинаковых бинов должно быть больше чем 0")
             return
 
-        self.migration_part = MigrationPart(
-            migration_path, user_custom_bins, user_split_max, user_remove_min, False,inter, pre_mig, mig)
+        self.migration_part = MigrationPart(migration_path, user_custom_bins, user_split_max, user_remove_min,
+                                            hand_intervals, intervals_entry)
         self.unfolding_part = UnfoldingPart(
             data_path, self.migration_part.bins, self.migration_part.intervals, self.migration_part.migration_matrix,
-            user_splitting, user_accuracy, arr, unf, res, dis, chi)
+            user_splitting, user_accuracy, post_arr, unf, res, dis, chi)
         self.have_result = True
 
-        self.text_result(text_area)
+        if not hand_intervals:
+            intervals_entry.delete(0, END)
+            intervals_entry.insert(0, DataOutput.array_to_string("", self.migration_part.intervals))
+        self.text_result(text_area, self.migration_results_to_string(inter, prior_arr, pre_mig, mig))
 
-    def text_result(
-            self, text_area,
-            # inter, pre_mig, mig,
-            # arrays, eff, unf, res, dis, chi
-    ):
-        self.have_result = True
-        text_area.insert(END, self.migration_part.result_string + self.unfolding_part.result_string)
+    def text_result(self, text_area, migration_results_string):
+        text_area.insert(END, migration_results_string + self.unfolding_part.result_string)
 
     def show_result(self, result_style):
         if self.check_not_ready():
@@ -139,3 +137,21 @@ class DAgostini:
             return True
         else:
             return False
+
+    def migration_results_to_string(self, inter, prior_arr, pre_mig, mig):
+        result = ""
+        if inter:
+            result += f"Бины: {self.migration_part.bins}\n"
+            result += DataOutput.array_to_string("Интервалы:", self.migration_part.intervals, 2)
+            result += "\n"
+        if prior_arr:
+            result += DataOutput.array_to_string("Апр. ист.:", self.migration_part.prior_true_array)
+            result += DataOutput.array_to_string("Апр. изм.:", self.migration_part.prior_measured_array)
+            result += "\n"
+        if pre_mig:
+            result += DataOutput.matrix_to_string(
+                self.migration_part.pre_migration_matrix, self.migration_part.bins, True)
+        if mig:
+            result += DataOutput.matrix_to_string(self.migration_part.migration_matrix, self.migration_part.bins, True)
+        return result
+

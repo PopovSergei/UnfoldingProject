@@ -1,4 +1,4 @@
-import DAgostini
+import Algorithm
 from utils import FileUsage
 from UI import Window
 

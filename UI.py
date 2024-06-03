@@ -2,38 +2,14 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
 
-from Baron import Baron
-from DAgostini import DAgostini
+from Algorithm import Algorithm
 
 # migration_path = "resources/test_1.txt"
 # data_path = "resources/test_2.txt"
-migration_path = "resources/first_part2.txt"
-data_path = "resources/second_part2.txt"
+# migration_path = "resources/first_part2.txt"
+# data_path = "resources/second_part2.txt"
 # migration_path = "resources/sim_p_2.txt"
 # data_path = "resources/sim_p_2.txt"
-
-# migration_path = "resources/first_half.txt"
-# data_path = "resources/second_half.txt"
-
-d_agostini_str = "Д\'Агостини"
-baron_str = "Барон"
-
-d_agostini = DAgostini()
-baron = Baron()
-
-
-def find_migration_data():
-    filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
-    if filepath != "":
-        global migration_path
-        migration_path = filepath
-
-
-def find_data_to_unfold():
-    filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
-    if filepath != "":
-        global data_path
-        data_path = filepath
 
 
 class Window(Tk):
@@ -43,12 +19,15 @@ class Window(Tk):
         self.geometry("680x720")
         self.resizable(False, False)
 
+        self.migration_path = "resources/first_half.txt"
+        self.unfolding_path = "resources/second_half.txt"
+        self.algorithm = Algorithm()
+
         for c in range(2):
             self.columnconfigure(index=c, weight=1)
         for r in range(10):
             self.rowconfigure(index=r, weight=1)
 
-        self.algorithm = StringVar(value=d_agostini_str)
         self.custom_bins = StringVar(value="35")
         self.split_max = StringVar(value="5")
         self.remove_min = StringVar(value="0")
@@ -56,12 +35,14 @@ class Window(Tk):
         self.splitting = StringVar(value="0")
 
         self.result_style = BooleanVar(value=True)
+        self.hand_intervals = BooleanVar(value=False)
 
         self.inter = BooleanVar(value=True)
+        self.prior_arr = BooleanVar(value=False)
         self.pre_mig = BooleanVar(value=False)
         self.mig = BooleanVar(value=False)
 
-        self.arr = BooleanVar(value=True)
+        self.post_arr = BooleanVar(value=True)
         self.unf = BooleanVar(value=False)
         self.res = BooleanVar(value=True)
         self.dis = BooleanVar(value=True)
@@ -77,6 +58,7 @@ class Window(Tk):
         self.custom_font = ("Comic Sans MS", 15, "bold")  # Arial  Comic Sans MS  Tahoma
         self.text_area_font = ("Comic Sans MS", 10)  # Arial  Comic Sans MS  Tahoma
 
+        self.intervals_entry = None
         self.text_area = None
 
     def run(self):
@@ -94,13 +76,15 @@ class Window(Tk):
 
         algorithm_menu = Menu(menu, tearoff=0)
         algorithm_menu.add_checkbutton(label="Подробный результат", variable=self.result_style)
+        algorithm_menu.add_checkbutton(label="Ручные интервалы", variable=self.hand_intervals)
         algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Бины и интервалы", variable=self.inter)
+        algorithm_menu.add_checkbutton(label="Апр. массивы", variable=self.prior_arr)
         algorithm_menu.add_checkbutton(label="Матрица премиграций", variable=self.pre_mig)
         algorithm_menu.add_checkbutton(label="Матрица миграций", variable=self.mig)
         algorithm_menu.add_separator()
-        algorithm_menu.add_checkbutton(label="Массивы ист. изм.", variable=self.arr)
-        algorithm_menu.add_checkbutton(label="Матрица обратной свёртки", variable=self.unf)
+        algorithm_menu.add_checkbutton(label="Апост. массивы", variable=self.post_arr)
+        algorithm_menu.add_checkbutton(label="Матрица обр. свёртки", variable=self.unf)
         algorithm_menu.add_checkbutton(label="Результат", variable=self.res)
         algorithm_menu.add_checkbutton(label="Распределение", variable=self.dis)
         algorithm_menu.add_checkbutton(label="Хи квадрат", variable=self.chi)
@@ -112,14 +96,10 @@ class Window(Tk):
         self.config(bg=self.bg_color)
 
         self.draw_label("Выберите данные для:", 0, 0, 2)
+        self.draw_label("Результаты:", 0, 2)
 
-        self.draw_button("Матрицы миграций", 1, 0, find_migration_data)
-        self.draw_button("Обратной свёртки", 1, 1, find_data_to_unfold)
-
-        # self.draw_label("Алгоритм:", 2, 0, 2)
-        #
-        # self.draw_radio_button(d_agostini_str, 3, 0, d_agostini_str, self.algorithm)
-        # self.draw_radio_button(baron_str, 3, 1, baron_str, self.algorithm)
+        self.draw_button("Матрицы миграций", 1, 0, self.find_migration_path)
+        self.draw_button("Обратной свёртки", 1, 1, self.find_unfolding_path)
 
         self.draw_label("Одинаковые бины:", 2, 0)
         self.draw_entry(2, 1, self.custom_bins)
@@ -136,23 +116,27 @@ class Window(Tk):
         self.draw_label("Усреднение (0-без):", 6, 0)
         self.draw_entry(6, 1, self.splitting)
 
-        self.draw_button("Пуск", 7, 0, lambda: d_agostini.run(
-            migration_path, data_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy, self.splitting,
-            self.text_area, self.inter.get(), self.pre_mig.get(), self.mig.get(), self.arr.get(), self.unf.get(),
-            self.res.get(), self.dis.get(), self.chi.get()
+        self.draw_button("Пуск", 7, 0, lambda: self.algorithm.run(
+            self.migration_path, self.unfolding_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy,
+            self.splitting, self.text_area, self.inter.get(), self.prior_arr.get(), self.pre_mig.get(), self.mig.get(),
+            self.post_arr.get(), self.unf.get(), self.res.get(), self.dis.get(), self.chi.get(),
+            self.hand_intervals.get(), self.intervals_entry
         ))
 
-        self.draw_button("Интервалы", 1, 2, d_agostini.show_intervals_stem)
+        self.intervals_entry = Entry(font=self.text_area_font, width=50)
+        self.intervals_entry.grid(row=7, column=1, columnspan=2, ipadx=6, ipady=6, padx=5, pady=5)
 
-        self.draw_button("Матрица премигр.", 2, 2, d_agostini.show_pre_migration_matrix)
+        self.draw_button("Интервалы", 1, 2, self.algorithm.show_intervals_stem)
 
-        self.draw_button("Матрица миграций", 3, 2, d_agostini.show_migration_matrix)
+        self.draw_button("Матрица премигр.", 2, 2, self.algorithm.show_pre_migration_matrix)
 
-        self.draw_button("Общая погрешность", 4, 2, d_agostini.calculate_fault)
+        self.draw_button("Матрица миграций", 3, 2, self.algorithm.show_migration_matrix)
 
-        self.draw_button("Гист. итераций", 5, 2, d_agostini.show_iterations)
+        self.draw_button("Общая погрешность", 4, 2, self.algorithm.calculate_fault)
 
-        self.draw_button("Гист. результата", 6, 2, lambda: d_agostini.show_result(self.result_style))
+        self.draw_button("Гист. итераций", 5, 2, self.algorithm.show_iterations)
+
+        self.draw_button("Гист. результата", 6, 2, lambda: self.algorithm.show_result(self.result_style))
 
         self.text_area = Text(width=80, height=10, wrap="none", font=self.text_area_font)
         self.text_area.bind("<Key>", lambda event: self.ctrl_event(event))
@@ -193,6 +177,16 @@ class Window(Tk):
             self.clipboard_clear()
             self.clipboard_append(content)
         return "break"
+
+    def find_migration_path(self):
+        filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
+        if filepath != "":
+            self.migration_path = filepath
+
+    def find_unfolding_path(self):
+        filepath = filedialog.askopenfilename(filetypes=[('TXT Files', '*.txt')])
+        if filepath != "":
+            self.unfolding_path = filepath
 
     def set_light_theme(self):
         self.bg_color = "#f1fafd"

@@ -84,8 +84,8 @@ def show_bar_charts(arrays, names, x_label, y_label, color_scheme=1):
 def show_stem(x_array, y_array, x_label, y_label):
     plt.close()
     plt.stem(x_array, y_array, basefmt="C2-")
-    plt.xticks(np.arange(math.floor(min(x_array)), math.ceil(max(x_array)) + 1, 1.0))
-    plt.yticks(np.arange(math.floor(min(y_array)), math.ceil(max(y_array)) + 1, 1.0))
+    plt.xticks(np.arange(math.floor(min(x_array)), math.ceil(max(x_array)) + 1, 2.0))
+    plt.yticks(np.arange(math.floor(min(y_array)), math.ceil(max(y_array)) + 1, 2.0))
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.show()
@@ -127,7 +127,9 @@ def print_array(name, array, round_val=None):
 
 
 def array_to_string(name, array, round_val=None):
-    string = f"{name} "
+    string = ""
+    if name != "":
+        string = f"{name} "
     if round_val is None:
         for value in array:
             string += f"{value} "

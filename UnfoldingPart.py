@@ -4,7 +4,7 @@ from utils import FileUsage, DataOutput
 
 
 class UnfoldingPart:
-    def __init__(self, data_path, bins, intervals, migration_matrix, splitting, accuracy, arr, unf, res, dis, chi):
+    def __init__(self, data_path, bins, intervals, migration_matrix, splitting, accuracy, post_arr, unf, res, dis, chi):
         # Массив апостериорных объектов с (двумя) полями (trueVal) и measuredVal
         self.posterior_values = FileUsage.read_file(data_path)
         self.bins = bins
@@ -18,9 +18,8 @@ class UnfoldingPart:
         self.measured_array = [0] * self.bins
         # Массив с количеством апостериорных событий, которые должны были попость в каждый бин
         self.true_array = [0] * self.bins
-        self.set_posterior_arrays(arr)
+        self.set_posterior_arrays(post_arr)
 
-        self.efficiency_array = self.set_efficiency_array()
         self.unfolding_matrix = None
         self.result_array = None
         self.distribution_array = [1 / self.bins] * self.bins
@@ -38,7 +37,7 @@ class UnfoldingPart:
             for i in range(splitting):
                 self.posterior_values = values_array[i]
                 self.set_posterior_arrays(True)
-                self.d_agostini_algorithm(accuracy)
+                self.d_agostini_algorithm(accuracy, unf, res, dis, chi)
                 for j in range(self.bins):
                     results_array[j] += self.distribution_array[j]
 
@@ -82,7 +81,7 @@ class UnfoldingPart:
 
         while old_chi_square > new_chi_square > accuracy:
             self.set_unfolding_matrix()
-            self.set_result_array(False)
+            self.set_result_array()
             self.results.append(self.result_array.copy())
             old_distribution_array = self.distribution_array.copy()
 
@@ -111,25 +110,11 @@ class UnfoldingPart:
                 if denominator != 0:
                     self.unfolding_matrix[j][i] = numerator / denominator
 
-    def set_result_array(self, use_eff):
+    def set_result_array(self):
         self.result_array = [0] * self.bins
         for i in range(self.bins):
-            expected = 0
             for j in range(self.bins):
-                expected += self.unfolding_matrix[j][i] * self.measured_array[j]
-            if use_eff and self.efficiency_array[i] != 0:
-                self.result_array[i] = (1 / self.efficiency_array[i]) * expected
-            else:
-                self.result_array[i] = expected
-
-    def set_efficiency_array(self):
-        efficiency_array = [0] * self.bins
-        for j in range(self.bins):
-            efficiency = 0
-            for k in range(self.bins):
-                efficiency += self.migration_matrix[k][j]
-            efficiency_array[j] = efficiency
-        return efficiency_array
+                self.result_array[i] += self.unfolding_matrix[j][i] * self.measured_array[j]
 
     def print_algorithm_results(self, unf, res, dis, chi, old_chi_square, new_chi_square):
         if unf:

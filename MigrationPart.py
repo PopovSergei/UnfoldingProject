@@ -1,14 +1,20 @@
 import math
 
-from utils import DataOutput, FileUsage
+from utils import FileUsage
 
 
 class MigrationPart:
-    def __init__(self, migration_path, custom_bins, split_max, remove_min, baron_style, inter, pre_mig, mig):
+    def __init__(self, migration_path, custom_bins, split_max, remove_min, hand_intervals, intervals_entry):
         # Массив априорных объектов с двумя полями trueVal и measuredVal
         self.prior_values = FileUsage.read_file(migration_path)
-        self.bins = custom_bins  # Количество бинов
-        self.intervals = self.set_intervals(split_max, remove_min)  # Значения верхних границ интервалов (бинов)
+        self.bins = None
+        self.intervals = None
+        if not hand_intervals:
+            self.bins = custom_bins  # Количество бинов
+            self.intervals = self.set_intervals(split_max, remove_min)  # Значения верхних границ интервалов (бинов)
+        else:
+            self.find_bins_intervals(intervals_entry)
+
         self.prior_binning()
 
         # Массив с количеством априорных событий, зарегестрированных в каждом бине
@@ -17,14 +23,9 @@ class MigrationPart:
         self.prior_true_array = [0] * self.bins
         # Матрица миграций до деления
         self.pre_migration_matrix = [[0] * self.bins for _ in range(self.bins)]
-        # Матрица миграций после деления
-        self.migration_matrix = [[0] * self.bins for _ in range(self.bins)]
-
         self.set_pre_migration_matrix()
-        self.set_migration_matrix(baron_style)
-
-        self.result_string = ""
-        self.print_migration_results(inter, pre_mig, mig)
+        # Матрица миграций после деления
+        self.migration_matrix = self.set_migration_matrix()
 
     # Используются: prior_values, bins. Изменяются: prior_true_array, prior_measured_array, pre_migration_matrix
     def set_pre_migration_matrix(self):
@@ -34,15 +35,22 @@ class MigrationPart:
             self.pre_migration_matrix[value.trueVal][value.measuredVal] += 1
 
     # Используются: bins, prior_true_array или prior_measured_array, pre_migration_matrix. Изменяются: migration_matrix
-    def set_migration_matrix(self, baron_style):
+    def set_migration_matrix(self):
+        migration_matrix = [[0] * self.bins for _ in range(self.bins)]
         for i in range(self.bins):
             for j in range(self.bins):
-                if not baron_style:
-                    if self.prior_true_array[i] > 0:
-                        self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.prior_true_array[i]
-                else:
-                    if self.prior_measured_array[j] > 0:
-                        self.migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.prior_measured_array[j]
+                if self.prior_true_array[i] > 0:
+                    migration_matrix[i][j] = self.pre_migration_matrix[i][j] / self.prior_true_array[i]
+        return migration_matrix
+
+    def find_bins_intervals(self, intervals_entry):
+        intervals = []
+        try:
+            intervals = intervals_entry.get().split(" ")
+        except ValueError:
+            pass
+        self.bins = len(intervals)
+        self.intervals = intervals
 
     # Задание интервалов. Используется: prior_values. Изменяются: bins, intervals
     def set_intervals(self, split_max, remove_min):
@@ -80,28 +88,6 @@ class MigrationPart:
         for value in self.prior_values:
             value.measuredVal = find_interval(value.measuredVal, self.intervals)
             value.trueVal = find_interval(value.trueVal, self.intervals)
-
-    def print_migration_results(self, inter, pre_mig, mig):
-        if inter:
-            print("\n\n")
-            print(f"Bins={self.bins}")
-            DataOutput.print_array("Intervals:", self.intervals, 2)
-            print()
-            self.result_string += f"Bins={self.bins}\n"
-            self.result_string += DataOutput.array_to_string("Intervals:", self.intervals, 2)
-            self.result_string += "\n"
-        if pre_mig:
-            self.result_string += DataOutput.matrix_to_string(self.pre_migration_matrix, self.bins, True)
-            self.result_string += DataOutput.array_to_string("MigrationTrue:", self.prior_true_array)
-            self.result_string += DataOutput.array_to_string("MigrationMeas:", self.prior_measured_array)
-            self.result_string += "\n"
-            DataOutput.print_matrix(self.pre_migration_matrix, self.bins, False)
-            DataOutput.print_array("MigrationTrue:", self.prior_true_array)
-            DataOutput.print_array("MigrationMeas:", self.prior_measured_array)
-            print()
-        if mig:
-            self.result_string += DataOutput.matrix_to_string(self.migration_matrix, self.bins, True)
-            DataOutput.print_matrix(self.migration_matrix, self.bins, True)
 
 
 def find_interval(value, intervals):
