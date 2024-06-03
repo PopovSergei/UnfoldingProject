@@ -40,10 +40,10 @@ class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title("Обратная свёртка")
-        self.geometry("950x470")
+        self.geometry("680x720")
         self.resizable(False, False)
 
-        for c in range(3):
+        for c in range(2):
             self.columnconfigure(index=c, weight=1)
         for r in range(10):
             self.rowconfigure(index=r, weight=1)
@@ -141,20 +141,26 @@ class Window(Tk):
             self.text_area, self.inter.get(), self.pre_mig.get(), self.mig.get(), self.arr.get(), self.unf.get(),
             self.res.get(), self.dis.get(), self.chi.get()
         ))
-        self.draw_button("Гист итер", 7, 1, d_agostini.show_iterations)
 
-        self.draw_button("Гистограмма результата", 8, 0, lambda: d_agostini.show_result(self.result_style))
-        self.draw_button("Матрица миграций", 8, 1, d_agostini.show_migration_matrix)
+        self.draw_button("Интервалы", 1, 2, d_agostini.show_intervals_stem)
 
-        self.draw_button("Рассчитать погрешность", 9, 0, d_agostini.calculate_fault)
-        self.draw_button("Матрица премигр.", 9, 1, d_agostini.show_pre_migration_matrix)
+        self.draw_button("Матрица премигр.", 2, 2, d_agostini.show_pre_migration_matrix)
 
-        self.text_area = Text(width=53, height=27, wrap="none", font=self.text_area_font)
-        self.text_area.grid(row=0, column=2, rowspan=11, columnspan=2, ipadx=6, ipady=6, padx=23, pady=23, sticky=NW)
+        self.draw_button("Матрица миграций", 3, 2, d_agostini.show_migration_matrix)
+
+        self.draw_button("Общая погрешность", 4, 2, d_agostini.calculate_fault)
+
+        self.draw_button("Гист. итераций", 5, 2, d_agostini.show_iterations)
+
+        self.draw_button("Гист. результата", 6, 2, lambda: d_agostini.show_result(self.result_style))
+
+        self.text_area = Text(width=80, height=10, wrap="none", font=self.text_area_font)
+        self.text_area.bind("<Key>", lambda event: self.ctrl_event(event))
+        self.text_area.grid(row=8, column=0, rowspan=2, columnspan=3, ipadx=6, ipady=6, padx=6, pady=6, sticky=NW)
         ys = ttk.Scrollbar(orient="vertical", command=self.text_area.yview)
-        ys.grid(row=0, column=3, rowspan=10, sticky=NS)
+        ys.grid(row=8, column=3, rowspan=2, sticky=NS)
         xs = ttk.Scrollbar(orient="horizontal", command=self.text_area.xview)
-        xs.grid(row=10, column=2, columnspan=2, sticky=EW)
+        xs.grid(row=10, column=0, columnspan=3, sticky=EW)
         self.text_area["yscrollcommand"] = ys.set
         self.text_area["xscrollcommand"] = xs.set
 
@@ -180,6 +186,13 @@ class Window(Tk):
         Entry(
             font=self.custom_font, textvariable=text_var, width=10
         ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
+
+    def ctrl_event(self, event):
+        if event.state == 4 and event.keysym == 'c':
+            content = self.text_area.selection_get()
+            self.clipboard_clear()
+            self.clipboard_append(content)
+        return "break"
 
     def set_light_theme(self):
         self.bg_color = "#f1fafd"
