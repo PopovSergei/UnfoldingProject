@@ -1,4 +1,3 @@
-import Algorithm
 from utils import FileUsage
 from UI import Window
 
@@ -26,7 +25,3 @@ if __name__ == '__main__':
 
     # Метод, позволяющий разделять файлы
     # utils.separate_file(filePath2, first_path2, second_path2)
-
-    # Запуск алгоритма Д'Агостини
-    # dagostini = DAgostini.DAgostini()
-    # dagostini.real_init(first_path2, second_path2)

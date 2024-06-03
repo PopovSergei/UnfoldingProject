@@ -42,6 +42,10 @@ class Algorithm:
 
         self.migration_part = MigrationPart(migration_path, user_custom_bins, user_split_max, user_remove_min,
                                             hand_intervals, intervals_entry)
+        if self.migration_part.bins is None:
+            mb.showinfo("Информация", "Неправильно заданы интервалы")
+            return
+
         self.unfolding_part = UnfoldingPart(
             data_path, self.migration_part.bins, self.migration_part.intervals, self.migration_part.migration_matrix,
             user_splitting, user_accuracy, post_arr, unf, res, dis, chi)

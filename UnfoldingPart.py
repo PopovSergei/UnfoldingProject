@@ -59,12 +59,9 @@ class UnfoldingPart:
             self.measured_array[value.measuredVal] += 1
 
         if print_result:
-            self.result_string += DataOutput.array_to_string("True:", self.true_array)
-            self.result_string += DataOutput.array_to_string("Meas:", self.measured_array)
+            self.result_string += DataOutput.array_to_string("Апост. ист.:", self.true_array)
+            self.result_string += DataOutput.array_to_string("Апост. изм.:", self.measured_array)
             self.result_string += "\n"
-            DataOutput.print_array("True:", self.true_array)
-            DataOutput.print_array("Meas:", self.measured_array)
-            print()
 
     def split_values(self, splitting):
         more_values = []
@@ -119,17 +116,13 @@ class UnfoldingPart:
     def print_algorithm_results(self, unf, res, dis, chi, old_chi_square, new_chi_square):
         if unf:
             self.result_string += DataOutput.matrix_to_string(self.unfolding_matrix, self.bins, True)
-            DataOutput.print_matrix(self.unfolding_matrix, self.bins, True)
         if res:
-            self.result_string += DataOutput.array_to_string("Res:", self.result_array, 2)
-            DataOutput.print_array("Res:", self.result_array, 2)
+            self.result_string += DataOutput.array_to_string("Результат:", self.result_array, 2)
         if dis:
-            self.result_string += DataOutput.array_to_string("Distribution:", self.distribution_array, 2)
-            DataOutput.print_array("Distribution:", self.distribution_array, 2)
+            self.result_string += DataOutput.array_to_string("Распределение:", self.distribution_array, 2)
         if chi:
             self.result_string += \
-                f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n\n"
-            print(f"old_chi_square={round(old_chi_square, 4)}, new_chi_square={round(new_chi_square, 4)}\n")
+                f"Старый хи квадрат: {round(old_chi_square, 4)}, новый хи квадрат: {round(new_chi_square, 4)}\n\n"
 
     def find_chi_square(self, old_distribution):
         chi_square = 0

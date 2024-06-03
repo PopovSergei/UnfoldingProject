@@ -16,16 +16,16 @@ class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title("Обратная свёртка")
-        self.geometry("680x720")
+        self.geometry("680x650")
         self.resizable(False, False)
 
         self.migration_path = "resources/first_half.txt"
         self.unfolding_path = "resources/second_half.txt"
         self.algorithm = Algorithm()
 
-        for c in range(2):
+        for c in range(3):
             self.columnconfigure(index=c, weight=1)
-        for r in range(10):
+        for r in range(11):
             self.rowconfigure(index=r, weight=1)
 
         self.custom_bins = StringVar(value="35")
@@ -55,8 +55,10 @@ class Window(Tk):
         self.active_btn_bg_color = "#6e95b7"
         self.active_btn_text_color = "#B3E5F4"
 
-        self.custom_font = ("Comic Sans MS", 15, "bold")  # Arial  Comic Sans MS  Tahoma
-        self.text_area_font = ("Comic Sans MS", 10)  # Arial  Comic Sans MS  Tahoma
+        self.custom_font = ("Comic Sans MS", 14, "bold")  # Arial  Comic Sans MS  Tahoma
+        self.text_area_font = ("Comic Sans MS", 10, "bold")  # Arial  Comic Sans MS  Tahoma
+        self.ipad_x = 2
+        self.ipad_y = 2
 
         self.intervals_entry = None
         self.text_area = None
@@ -76,7 +78,6 @@ class Window(Tk):
 
         algorithm_menu = Menu(menu, tearoff=0)
         algorithm_menu.add_checkbutton(label="Подробный результат", variable=self.result_style)
-        algorithm_menu.add_checkbutton(label="Ручные интервалы", variable=self.hand_intervals)
         algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Бины и интервалы", variable=self.inter)
         algorithm_menu.add_checkbutton(label="Апр. массивы", variable=self.prior_arr)
@@ -89,8 +90,14 @@ class Window(Tk):
         algorithm_menu.add_checkbutton(label="Распределение", variable=self.dis)
         algorithm_menu.add_checkbutton(label="Хи квадрат", variable=self.chi)
 
+        intervals_menu = Menu(menu, tearoff=0)
+        intervals_menu.add_checkbutton(label="Ручные интервалы", variable=self.hand_intervals)
+        intervals_menu.add_separator()
+        intervals_menu.add_command(label="Очистить", command=lambda: self.intervals_entry.delete(0, END))
+
         menu.add_cascade(label="Приложение", menu=app_menu)
         menu.add_cascade(label="Вывод алгоритма", menu=algorithm_menu)
+        menu.add_cascade(label="Интервалы", menu=intervals_menu)
 
     def draw_widgets(self):
         self.config(bg=self.bg_color)
@@ -123,8 +130,12 @@ class Window(Tk):
             self.hand_intervals.get(), self.intervals_entry
         ))
 
-        self.intervals_entry = Entry(font=self.text_area_font, width=50)
-        self.intervals_entry.grid(row=7, column=1, columnspan=2, ipadx=6, ipady=6, padx=5, pady=5)
+        self.intervals_entry = Entry(font=self.text_area_font)
+        self.intervals_entry.grid(row=7, column=1, columnspan=2,
+                                  ipadx=self.ipad_x, ipady=self.ipad_x, padx=5, pady=5, sticky=EW)
+        x_scroll = ttk.Scrollbar(orient="horizontal", command=self.intervals_entry.xview)
+        x_scroll.grid(row=8, column=1, columnspan=2, sticky=EW)
+        self.intervals_entry["xscrollcommand"] = x_scroll.set
 
         self.draw_button("Интервалы", 1, 2, self.algorithm.show_intervals_stem)
 
@@ -140,36 +151,38 @@ class Window(Tk):
 
         self.text_area = Text(width=80, height=10, wrap="none", font=self.text_area_font)
         self.text_area.bind("<Key>", lambda event: self.ctrl_event(event))
-        self.text_area.grid(row=8, column=0, rowspan=2, columnspan=3, ipadx=6, ipady=6, padx=6, pady=6, sticky=NW)
+        self.text_area.grid(row=9, column=0, rowspan=2, columnspan=3,
+                            ipadx=self.ipad_x, ipady=self.ipad_x, padx=6, pady=6, sticky=NW)
         ys = ttk.Scrollbar(orient="vertical", command=self.text_area.yview)
-        ys.grid(row=8, column=3, rowspan=2, sticky=NS)
+        ys.grid(row=9, column=3, rowspan=2, sticky=NS)
         xs = ttk.Scrollbar(orient="horizontal", command=self.text_area.xview)
-        xs.grid(row=10, column=0, columnspan=3, sticky=EW)
+        xs.grid(row=11, column=0, columnspan=3, sticky=EW)
         self.text_area["yscrollcommand"] = ys.set
         self.text_area["xscrollcommand"] = xs.set
 
     def draw_label(self, text, row, column, column_span=1):
         Label(
             text=text, font=self.custom_font, bg=self.bg_color, fg=self.text_color
-        ).grid(row=row, column=column, columnspan=column_span, ipadx=6, ipady=6, padx=5, pady=5)
+        ).grid(row=row, column=column, columnspan=column_span,
+               ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
 
     def draw_button(self, text, row, column, command):
         Button(
             text=text, border=0, font=self.custom_font, command=command,
             bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
             activeforeground=self.active_btn_text_color
-        ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
+        ).grid(row=row, column=column, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
 
     def draw_radio_button(self, text, row, column, value, variable):
         Radiobutton(
             text=text, font=self.custom_font, value=value, variable=variable,
             bg=self.bg_color, fg=self.text_color, activebackground=self.bg_color, activeforeground=self.text_color
-        ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
+        ).grid(row=row, column=column, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5)
 
     def draw_entry(self, row, column, text_var):
         Entry(
             font=self.custom_font, textvariable=text_var, width=10
-        ).grid(row=row, column=column, ipadx=6, ipady=6, padx=5, pady=5)
+        ).grid(row=row, column=column, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
 
     def ctrl_event(self, event):
         if event.state == 4 and event.keysym == 'c':

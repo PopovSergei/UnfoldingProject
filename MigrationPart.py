@@ -7,13 +7,14 @@ class MigrationPart:
     def __init__(self, migration_path, custom_bins, split_max, remove_min, hand_intervals, intervals_entry):
         # Массив априорных объектов с двумя полями trueVal и measuredVal
         self.prior_values = FileUsage.read_file(migration_path)
-        self.bins = None
-        self.intervals = None
+        self.bins = None  # Количество бинов
+        self.intervals = None  # Значения верхних границ интервалов (бинов)
         if not hand_intervals:
-            self.bins = custom_bins  # Количество бинов
-            self.intervals = self.set_intervals(split_max, remove_min)  # Значения верхних границ интервалов (бинов)
+            self.bins = custom_bins
+            self.intervals = self.set_intervals(split_max, remove_min)
         else:
-            self.find_bins_intervals(intervals_entry)
+            if not self.find_bins_intervals(intervals_entry):
+                return
 
         self.prior_binning()
 
@@ -44,13 +45,16 @@ class MigrationPart:
         return migration_matrix
 
     def find_bins_intervals(self, intervals_entry):
+        intervals_string_array = intervals_entry.get().strip().split(" ")
         intervals = []
         try:
-            intervals = intervals_entry.get().split(" ")
+            for value in intervals_string_array:
+                intervals.append(float(value))
         except ValueError:
-            pass
+            return False
         self.bins = len(intervals)
         self.intervals = intervals
+        return True
 
     # Задание интервалов. Используется: prior_values. Изменяются: bins, intervals
     def set_intervals(self, split_max, remove_min):
