@@ -1,5 +1,5 @@
 import math
-
+import random
 from utils import FileUsage
 
 
@@ -85,6 +85,19 @@ class MigrationPart:
             for i in range(remove_min):
                 intervals_correction("remove", measured_vals_array.copy(), intervals, min_val)
 
+        # Равномерный биннинг
+        # elements_in_interval = int(len(self.prior_values) / self.bins)
+        # interval_counter = elements_in_interval
+        # for i in range(self.bins):
+        #     intervals.append(interval_counter)
+        #     interval_counter += elements_in_interval
+        #
+        # quick_sort(self.prior_values, 0, len(self.prior_values) - 1)
+        #
+        # for i in range(self.bins):
+        #     intervals[i] = self.prior_values[intervals[i]].measuredVal
+        # intervals[self.bins - 1] = max_val
+
         return intervals
 
     # Замена значений на номера бинов в values. Используется: intervals.
@@ -147,3 +160,20 @@ def split_max_interval(intervals, max_interval, min_val):
         pre_interval_val = min_val
     pre_interval_val += (interval_val - pre_interval_val) / 2
     intervals.insert(max_interval, pre_interval_val)
+
+
+def quick_sort(values, first, last):
+    if first >= last:
+        return
+    i, j = first, last
+    pivot = values[random.randint(first, last)]
+    while i <= j:
+        while values[i].measuredVal < pivot.measuredVal:
+            i += 1
+        while values[j].measuredVal > pivot.measuredVal:
+            j -= 1
+        if i <= j:
+            values[i], values[j] = values[j], values[i]
+            i, j = i + 1, j - 1
+    quick_sort(values, first, j)
+    quick_sort(values, i, last)

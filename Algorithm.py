@@ -70,12 +70,12 @@ class Algorithm:
             DataOutput.show_bar_charts(
                 [self.migration_part.prior_measured_array, self.migration_part.prior_true_array,
                  self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array],
-                ["Априор. Изм.", "Априор. Ист.", "Измеренные", "Истинные", "Результат"],
+                ["Апр. Изм.", "Апр. Ист.", "Апост. Изм.", "Апост. Ист.", "Результат"],
                 "Бины", "События", 0)
         else:
             DataOutput.show_bar_charts(
                 [self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array],
-                ["Измеренные", "Истинные", "Результат"],
+                ["Апост. Изм.", "Апост. Ист.", "Результат"],
                 "Бины", "События", self.unfolding_part.bins
             )
 
@@ -84,7 +84,7 @@ class Algorithm:
             return
 
         arrays = [[]]
-        names = ["Измеренные"]
+        names = ["Апост. Изм."]
         for j in range(self.unfolding_part.bins):
             arrays[0].append(abs(self.unfolding_part.true_array[j] - self.unfolding_part.measured_array[j]))
 
@@ -112,7 +112,7 @@ class Algorithm:
         bins_array = []
         for i in range(self.migration_part.bins):
             bins_array.append(i)
-        DataOutput.show_stem(self.migration_part.intervals, bins_array, "Интервалы", "Бины")
+        DataOutput.show_stem(self.migration_part.intervals, bins_array, "Значения", "Бины")
 
     def calculate_fault(self):
         if self.check_not_ready():
