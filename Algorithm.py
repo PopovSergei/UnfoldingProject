@@ -57,7 +57,10 @@ class Algorithm:
         self.text_result(text_area, self.migration_results_to_string(inter, prior_arr, pre_mig, mig))
 
     def text_result(self, text_area, migration_results_string):
-        text_area.insert(END, migration_results_string + self.unfolding_part.result_string)
+        text = migration_results_string + self.unfolding_part.result_string
+        if text != "":
+            text += "\n"
+        text_area.insert(END, text)
 
     def show_result(self, result_style):
         if self.check_not_ready():

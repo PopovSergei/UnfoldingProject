@@ -64,7 +64,7 @@ class Window(Tk):
         self.ipad_y = 2
 
         self.intervals_entry = None
-        self.text_area = None
+        self.text_area = Text()
         self.start_btn = None
 
     def run(self):
@@ -79,10 +79,12 @@ class Window(Tk):
         app_menu = Menu(menu, tearoff=0)
         app_menu.add_checkbutton(label="Отдельный поток", variable=self.thread)
         app_menu.add_separator()
-        app_menu.add_command(label="Светлая тема", command=self.set_light_theme)
-        app_menu.add_command(label="Тёмная тема", command=self.set_dark_theme)
+        app_menu.add_command(label="Светлая тема", command=lambda: self.set_theme("light"))
+        app_menu.add_command(label="Тёмная тема", command=lambda: self.set_theme("dark"))
 
         algorithm_menu = Menu(menu, tearoff=0)
+        algorithm_menu.add_command(label="Очистить", command=lambda: self.text_area.delete(1.0, END))
+        algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Подробный результат", variable=self.result_style)
         algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Бины и интервалы", variable=self.inter)
@@ -207,23 +209,29 @@ class Window(Tk):
         if filepath != "":
             self.unfolding_path = filepath
 
-    def set_light_theme(self):
-        self.bg_color = "#f1fafd"
-        self.text_color = "#313e43"
-        self.btn_bg_color = "#4A7AA5"
-        self.btn_text_color = "#B3E5F4"
-        self.active_btn_bg_color = "#6e95b7"
-        self.active_btn_text_color = "#B3E5F4"
-        self.draw_widgets()
+    def set_theme(self, theme):
+        if theme == "light":
+            self.bg_color = "#f1fafd"
+            self.text_color = "#313e43"
+            self.btn_bg_color = "#4A7AA5"
+            self.btn_text_color = "#B3E5F4"
+            self.active_btn_bg_color = "#6e95b7"
+            self.active_btn_text_color = "#B3E5F4"
+        else:
+            self.bg_color = "#1E1E2E"
+            self.text_color = "#F8C471"
+            self.btn_bg_color = "#E74C3C"
+            self.btn_text_color = "#2C3E50"
+            self.active_btn_bg_color = "#C0392B"
+            self.active_btn_text_color = "#2C3E50"
 
-    def set_dark_theme(self):
-        self.bg_color = "#1E1E2E"
-        self.text_color = "#F8C471"
-        self.btn_bg_color = "#E74C3C"
-        self.btn_text_color = "#2C3E50"
-        self.active_btn_bg_color = "#C0392B"
-        self.active_btn_text_color = "#2C3E50"
+        intervals_entry_text = self.intervals_entry.get().strip()
+        text_area_text = self.text_area.get(0.1, END).strip()
+        if text_area_text != "":
+            text_area_text += "\n\n\n"
         self.draw_widgets()
+        self.intervals_entry.insert(0, intervals_entry_text)
+        self.text_area.insert(0.1, text_area_text)
 
     def start_thread(self):
         if self.thread.get():

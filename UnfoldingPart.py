@@ -22,28 +22,25 @@ class UnfoldingPart:
 
         self.unfolding_matrix = None
         self.result_array = None
-        self.distribution_array = [1 / self.bins] * self.bins
+        self.distribution_array = None
         self.results = []
 
         if splitting == 0:
             self.d_agostini_algorithm(accuracy, unf, res, dis, chi)
         else:
-            util_true_array = self.true_array.copy()
             util_measured_array = self.measured_array.copy()
-            util_values_len = len(self.posterior_values)
             results_array = [0] * self.bins
 
-            values_array = self.split_values(splitting)
+            measured_vals = self.split_measured_vals(splitting)
             for i in range(splitting):
-                self.posterior_values = values_array[i]
-                self.set_posterior_arrays(True)
+                measured_vals_array = measured_vals[i]
+                self.set_measured_array(measured_vals_array, post_arr)
                 self.d_agostini_algorithm(accuracy, unf, res, dis, chi)
                 for j in range(self.bins):
                     results_array[j] += self.distribution_array[j]
 
             for i in range(self.bins):
-                self.result_array[i] = results_array[i] / splitting * util_values_len
-                self.true_array[i] = util_true_array[i]
+                self.result_array[i] = results_array[i] / splitting * len(self.posterior_values)
                 self.measured_array[i] = util_measured_array[i]
 
     # Замена значений на номера бинов в values. Используется: intervals.
@@ -53,26 +50,37 @@ class UnfoldingPart:
             value.trueVal = find_interval(value.trueVal, self.intervals)
     
     # Используются: posterior_values, bins. Изменяются: true_array, measured_array
-    def set_posterior_arrays(self, print_result):
+    def set_posterior_arrays(self, post_arr):
         for value in self.posterior_values:
             self.true_array[value.trueVal] += 1
             self.measured_array[value.measuredVal] += 1
 
-        if print_result:
+        if post_arr:
             self.result_string += DataOutput.array_to_string("Апост. ист.:", self.true_array)
             self.result_string += DataOutput.array_to_string("Апост. изм.:", self.measured_array)
             self.result_string += "\n"
 
-    def split_values(self, splitting):
-        more_values = []
+    def set_measured_array(self, measured_vals_array, post_arr):
+        self.measured_array = [0] * self.bins
+        for value in measured_vals_array:
+            self.measured_array[value] += 1
+
+        if post_arr:
+            if post_arr:
+                self.result_string += DataOutput.array_to_string("Апост. изм. усред.:", self.measured_array)
+                self.result_string += "\n"
+
+    def split_measured_vals(self, splitting):
+        measured_vals = []
         for i in range(splitting):
-            more_values.append([])
+            measured_vals.append([])
             for value in self.posterior_values:
-                if random.randint(0, 2) < 2:
-                    more_values[i].append(value)
-        return more_values
+                if random.randint(0, 1) < 1:
+                    measured_vals[i].append(value.measuredVal)
+        return measured_vals
 
     def d_agostini_algorithm(self, accuracy, unf, res, dis, chi):
+        self.distribution_array = [1 / self.bins] * self.bins
         new_chi_square = 100
         old_chi_square = 101
 

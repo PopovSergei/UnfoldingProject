@@ -68,7 +68,7 @@ def show_bar_charts(arrays, names, x_label, y_label, color_scheme=1):
         ax.bar(x + 1.5 * width, arrays[3], width, label=names[3], color=color5)
     else:
         width = 0.18
-        ax.bar(x - 2 * width, arrays[-5], width, label=names[-5], color=color1)
+        ax.bar(x - 2 * width, arrays[0], width, label=names[0], color=color1)
         ax.bar(x - width, arrays[-4], width, label=names[-4], color=color2)
         ax.bar(x, arrays[-3], width, label=names[-3], color=color3)
         ax.bar(x + width, arrays[-2], width, label=names[-2], color=color4)
