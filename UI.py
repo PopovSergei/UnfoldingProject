@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+import threading
 
 from Algorithm import Algorithm
 
@@ -34,6 +35,8 @@ class Window(Tk):
         self.accuracy = StringVar(value="0.05")
         self.splitting = StringVar(value="0")
 
+        self.thread = BooleanVar(value=False)
+
         self.result_style = BooleanVar(value=True)
         self.hand_intervals = BooleanVar(value=False)
 
@@ -62,6 +65,7 @@ class Window(Tk):
 
         self.intervals_entry = None
         self.text_area = None
+        self.start_btn = None
 
     def run(self):
         self.draw_menu()
@@ -73,6 +77,8 @@ class Window(Tk):
         self.config(menu=menu)
 
         app_menu = Menu(menu, tearoff=0)
+        app_menu.add_checkbutton(label="Отдельный поток", variable=self.thread)
+        app_menu.add_separator()
         app_menu.add_command(label="Светлая тема", command=self.set_light_theme)
         app_menu.add_command(label="Тёмная тема", command=self.set_dark_theme)
 
@@ -123,12 +129,12 @@ class Window(Tk):
         self.draw_label("Усреднение (0-без):", 6, 0)
         self.draw_entry(6, 1, self.splitting)
 
-        self.draw_button("Пуск", 7, 0, lambda: self.algorithm.run(
-            self.migration_path, self.unfolding_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy,
-            self.splitting, self.text_area, self.inter.get(), self.prior_arr.get(), self.pre_mig.get(), self.mig.get(),
-            self.post_arr.get(), self.unf.get(), self.res.get(), self.dis.get(), self.chi.get(),
-            self.hand_intervals.get(), self.intervals_entry
-        ))
+        self.start_btn = Button(
+            text="Пуск", border=0, font=self.custom_font, command=self.start_thread,
+            bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
+            activeforeground=self.active_btn_text_color
+        )
+        self.start_btn.grid(row=7, column=0, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
 
         self.intervals_entry = Entry(font=self.text_area_font)
         self.intervals_entry.grid(row=7, column=1, columnspan=2,
@@ -218,3 +224,26 @@ class Window(Tk):
         self.active_btn_bg_color = "#C0392B"
         self.active_btn_text_color = "#2C3E50"
         self.draw_widgets()
+
+    def start_thread(self):
+        if self.thread.get():
+            self.start_btn.config(state=DISABLED)
+            thread = threading.Thread(target=self.start_algorithm)
+            thread.start()
+            self.check_thread(thread)
+        else:
+            self.start_algorithm()
+
+    def start_algorithm(self):
+        self.algorithm.run(
+            self.migration_path, self.unfolding_path, self.custom_bins, self.split_max, self.remove_min, self.accuracy,
+            self.splitting, self.text_area, self.inter.get(), self.prior_arr.get(), self.pre_mig.get(), self.mig.get(),
+            self.post_arr.get(), self.unf.get(), self.res.get(), self.dis.get(), self.chi.get(),
+            self.hand_intervals.get(), self.intervals_entry
+        )
+
+    def check_thread(self, thread):
+        if thread.is_alive():
+            self.after(100, lambda: self.check_thread(thread))
+        else:
+            self.start_btn.config(state=NORMAL)
