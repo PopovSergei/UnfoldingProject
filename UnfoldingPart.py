@@ -1,15 +1,17 @@
 import random
 
 from utils import FileUsage, DataOutput
+import numpy as np
+from scipy.stats import norm
 
 
 class UnfoldingPart:
-    def __init__(self, data_path, bins, intervals, migration_matrix, splitting, accuracy, post_arr, unf, res, dis, chi):
+    def __init__(self, migration_part, splitting, accuracy, params):
         # Массив апостериорных объектов с (двумя) полями (trueVal) и measuredVal
-        self.posterior_values = FileUsage.read_file(data_path)
-        self.bins = bins
-        self.intervals = intervals
-        self.migration_matrix = migration_matrix
+        self.posterior_values = FileUsage.read_file(params.unfolding_path)
+        self.bins = migration_part.bins
+        self.intervals = migration_part.intervals
+        self.migration_matrix = migration_part.migration_matrix
         self.posterior_binning()
 
         self.result_string = ""
@@ -18,7 +20,7 @@ class UnfoldingPart:
         self.measured_array = [0] * self.bins
         # Массив с количеством апостериорных событий, которые должны были попость в каждый бин
         self.true_array = [0] * self.bins
-        self.set_posterior_arrays(post_arr)
+        self.set_posterior_arrays(params.post_arr.get())
 
         self.unfolding_matrix = None
         self.result_array = None
@@ -26,7 +28,7 @@ class UnfoldingPart:
         self.results = []
 
         if splitting == 0:
-            self.d_agostini_algorithm(accuracy, unf, res, dis, chi)
+            self.d_agostini_algorithm(accuracy, params)
         else:
             util_measured_array = self.measured_array.copy()
             results_array = [0] * self.bins
@@ -34,8 +36,8 @@ class UnfoldingPart:
             measured_vals = self.split_measured_vals(splitting)
             for i in range(splitting):
                 measured_vals_array = measured_vals[i]
-                self.set_measured_array(measured_vals_array, post_arr)
-                self.d_agostini_algorithm(accuracy, unf, res, dis, chi)
+                self.set_measured_array(measured_vals_array, params.post_arr.get())
+                self.d_agostini_algorithm(accuracy, params)
                 for j in range(self.bins):
                     results_array[j] += self.distribution_array[j]
 
@@ -79,25 +81,38 @@ class UnfoldingPart:
                     measured_vals[i].append(value.measuredVal)
         return measured_vals
 
-    def d_agostini_algorithm(self, accuracy, unf, res, dis, chi):
+    def d_agostini_algorithm(self, accuracy, params):
         self.distribution_array = [1 / self.bins] * self.bins
+
+        # x = np.arange(0, self.bins, 1)
+        # max_meas = self.measured_array.index(max(self.measured_array))
+        #
+        # sr_znach = sum(self.measured_array) / self.bins
+        # bolsh = 0
+        # for i in range(self.bins):
+        #     if self.measured_array[i] > sr_znach:
+        #         bolsh += 1
+        # obsh = bolsh / self.bins * 10
+        #
+        # smf_str = self.bins / 1
+        # self.distribution_array = norm.pdf(x, max_meas, smf_str)
+
         new_chi_square = 100
         old_chi_square = 101
 
         while old_chi_square > new_chi_square > accuracy:
             self.set_unfolding_matrix()
+
             self.set_result_array()
             self.results.append(self.result_array.copy())
-            old_distribution_array = self.distribution_array.copy()
 
-            result_array_sum = sum(self.result_array)
-            for j in range(self.bins):
-                self.distribution_array[j] = self.result_array[j] / result_array_sum
+            old_distribution_array = self.distribution_array.copy()
+            self.set_distribution_array()
 
             old_chi_square = new_chi_square
             new_chi_square = self.find_chi_square(old_distribution_array)
 
-            self.print_algorithm_results(unf, res, dis, chi, old_chi_square, new_chi_square)
+            self.print_algorithm_results(params, old_chi_square, new_chi_square)
 
     def set_unfolding_matrix(self):
         self.unfolding_matrix = [[0] * self.bins for _ in range(self.bins)]
@@ -121,14 +136,19 @@ class UnfoldingPart:
             for j in range(self.bins):
                 self.result_array[i] += self.unfolding_matrix[j][i] * self.measured_array[j]
 
-    def print_algorithm_results(self, unf, res, dis, chi, old_chi_square, new_chi_square):
-        if unf:
+    def set_distribution_array(self):
+        result_array_sum = sum(self.result_array)
+        for j in range(self.bins):
+            self.distribution_array[j] = self.result_array[j] / result_array_sum
+
+    def print_algorithm_results(self, params, old_chi_square, new_chi_square):
+        if params.unf.get():
             self.result_string += DataOutput.matrix_to_string(self.unfolding_matrix, self.bins, True)
-        if res:
+        if params.res.get():
             self.result_string += DataOutput.array_to_string("Результат:", self.result_array, 2)
-        if dis:
+        if params.dis.get():
             self.result_string += DataOutput.array_to_string("Распределение:", self.distribution_array, 2)
-        if chi:
+        if params.chi.get():
             self.result_string += \
                 f"Старый хи квадрат: {round(old_chi_square, 4)}, новый хи квадрат: {round(new_chi_square, 4)}\n\n"
 

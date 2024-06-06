@@ -4,16 +4,16 @@ from utils import FileUsage
 
 
 class MigrationPart:
-    def __init__(self, migration_path, custom_bins, split_max, remove_min, hand_intervals, intervals_entry):
+    def __init__(self, custom_bins, split_max, remove_min, params):
         # Массив априорных объектов с двумя полями trueVal и measuredVal
-        self.prior_values = FileUsage.read_file(migration_path)
+        self.prior_values = FileUsage.read_file(params.migration_path)
         self.bins = None  # Количество бинов
         self.intervals = None  # Значения верхних границ интервалов (бинов)
-        if not hand_intervals:
+        if not params.hand_intervals.get():
             self.bins = custom_bins
             self.intervals = self.set_intervals(split_max, remove_min)
         else:
-            if not self.find_bins_intervals(intervals_entry):
+            if not self.find_bins_intervals(params.intervals_entry):
                 return
 
         self.prior_binning()

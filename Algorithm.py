@@ -12,22 +12,20 @@ class Algorithm:
         self.migration_part = None
         self.unfolding_part = None
 
-    def run(self, migration_path, data_path, custom_bins, split_max, remove_min, accuracy, splitting, text_area,
-            inter, prior_arr, pre_mig, mig, post_arr, unf, res, dis, chi, hand_intervals, intervals_entry
-            ):
-        if migration_path == "":
+    def run(self, params):
+        if params.migration_path == "":
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля построения матрицы миграций")
             return
-        elif data_path == "":
+        elif params.unfolding_path == "":
             mb.showinfo("Информация", "Сначала укажите файл c данными\nдля обратной свёртки")
             return
 
         try:
-            user_custom_bins = abs(int(custom_bins.get()))
-            user_split_max = abs(int(split_max.get()))
-            user_remove_min = abs(int(remove_min.get()))
-            user_accuracy = abs(float(accuracy.get()))
-            user_splitting = abs(int(splitting.get()))
+            user_custom_bins = abs(int(params.custom_bins.get()))
+            user_split_max = abs(int(params.split_max.get()))
+            user_remove_min = abs(int(params.remove_min.get()))
+            user_accuracy = abs(float(params.accuracy.get()))
+            user_splitting = abs(int(params.splitting.get()))
         except ValueError:
             mb.showinfo("Информация", "Ошибка в полях ввода")
             return
@@ -40,21 +38,18 @@ class Algorithm:
             mb.showinfo("Информация", "Одинаковых бинов должно быть больше чем 0")
             return
 
-        self.migration_part = MigrationPart(migration_path, user_custom_bins, user_split_max, user_remove_min,
-                                            hand_intervals, intervals_entry)
+        self.migration_part = MigrationPart(user_custom_bins, user_split_max, user_remove_min, params)
         if self.migration_part.bins is None:
             mb.showinfo("Информация", "Неправильно заданы интервалы")
             return
 
-        self.unfolding_part = UnfoldingPart(
-            data_path, self.migration_part.bins, self.migration_part.intervals, self.migration_part.migration_matrix,
-            user_splitting, user_accuracy, post_arr, unf, res, dis, chi)
+        self.unfolding_part = UnfoldingPart(self.migration_part, user_splitting, user_accuracy, params)
         self.have_result = True
 
-        if not hand_intervals:
-            intervals_entry.delete(0, END)
-            intervals_entry.insert(0, DataOutput.array_to_string("", self.migration_part.intervals))
-        self.text_result(text_area, self.migration_results_to_string(inter, prior_arr, pre_mig, mig))
+        if not params.hand_intervals.get():
+            params.intervals_entry.delete(0, END)
+            params.intervals_entry.insert(0, DataOutput.array_to_string("", self.migration_part.intervals))
+        self.text_result(params.text_area, self.migration_results_to_string(params))
 
     def text_result(self, text_area, migration_results_string):
         text = migration_results_string + self.unfolding_part.result_string
@@ -76,7 +71,7 @@ class Algorithm:
             DataOutput.show_bar_charts(
                 [self.unfolding_part.measured_array, self.unfolding_part.true_array, self.unfolding_part.result_array],
                 ["Апост. Изм.", "Апост. Ист.", "Результат"],
-                "Бины", "События", self.unfolding_part.bins
+                "Бины", "События", 1
             )
 
     def show_iterations(self):
@@ -145,20 +140,20 @@ class Algorithm:
         else:
             return False
 
-    def migration_results_to_string(self, inter, prior_arr, pre_mig, mig):
+    def migration_results_to_string(self, params):
         result = ""
-        if inter:
+        if params.inter.get():
             result += f"Бины: {self.migration_part.bins}\n"
             result += DataOutput.array_to_string("Интервалы:", self.migration_part.intervals, 2)
             result += "\n"
-        if prior_arr:
+        if params.prior_arr.get():
             result += DataOutput.array_to_string("Апр. ист.:", self.migration_part.prior_true_array)
             result += DataOutput.array_to_string("Апр. изм.:", self.migration_part.prior_measured_array)
             result += "\n"
-        if pre_mig:
+        if params.pre_mig.get():
             result += DataOutput.matrix_to_string(
                 self.migration_part.pre_migration_matrix, self.migration_part.bins, True)
-        if mig:
+        if params.mig.get():
             result += DataOutput.matrix_to_string(self.migration_part.migration_matrix, self.migration_part.bins, True)
         return result
 
