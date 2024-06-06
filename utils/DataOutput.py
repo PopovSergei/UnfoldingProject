@@ -102,14 +102,20 @@ def print_matrix(matrix, bins, flag):
     print()
 
 
-def matrix_to_string(matrix, bins, flag):
+def matrix_to_string(matrix, bins, flag, round_val=None):
     string = ""
     for i in range(bins):
         for j in range(bins):
-            if i == j and flag:
-                string += f"|{round(matrix[i][j], 2)}| "
+            if round_val is not None:
+                if i == j and flag:
+                    string += f"|{round(matrix[i][j], round_val)}| "
+                else:
+                    string += f"{round(matrix[i][j], round_val)} "
             else:
-                string += f"{round(matrix[i][j], 2)} "
+                if i == j and flag:
+                    string += f"|{matrix[i][j]}| "
+                else:
+                    string += f"{matrix[i][j]} "
         string += "\n"
     string += "\n"
     return string

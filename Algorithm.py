@@ -101,6 +101,11 @@ class Algorithm:
             return
         DataOutput.show_matrix(self.migration_part.pre_migration_matrix, self.migration_part.bins, True)
 
+    def show_unfolding_matrix(self):
+        if self.check_not_ready():
+            return
+        DataOutput.show_matrix(self.unfolding_part.unfolding_matrix, self.migration_part.bins, False)
+
     def show_intervals_stem(self):
         if self.check_not_ready():
             return
@@ -143,8 +148,15 @@ class Algorithm:
     def migration_results_to_string(self, params):
         result = ""
         if params.inter.get():
+            round_intervals = None
             result += f"Бины: {self.migration_part.bins}\n"
-            result += DataOutput.array_to_string("Интервалы:", self.migration_part.intervals, 2)
+            try:
+                round_intervals = int(params.round_intervals.get())
+                if round_intervals == 0:
+                    round_intervals = None
+            except ValueError:
+                mb.showinfo("Информация", "Неправильное значение округления интервалов")
+            result += DataOutput.array_to_string("Интервалы:", self.migration_part.intervals, round_intervals)
             result += "\n"
         if params.prior_arr.get():
             result += DataOutput.array_to_string("Апр. ист.:", self.migration_part.prior_true_array)
@@ -154,6 +166,13 @@ class Algorithm:
             result += DataOutput.matrix_to_string(
                 self.migration_part.pre_migration_matrix, self.migration_part.bins, True)
         if params.mig.get():
-            result += DataOutput.matrix_to_string(self.migration_part.migration_matrix, self.migration_part.bins, True)
+            round_mig_matrix = None
+            try:
+                round_mig_matrix = int(params.round_mig_matrix.get())
+                if round_mig_matrix == 0:
+                    round_mig_matrix = None
+            except ValueError:
+                mb.showinfo("Информация", "Неправильное значение округления\nматрицы миграций")
+            result += DataOutput.matrix_to_string(self.migration_part.migration_matrix,
+                                                  self.migration_part.bins, True, round_mig_matrix)
         return result
-

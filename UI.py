@@ -18,10 +18,10 @@ class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title("Обратная свёртка")
-        self.geometry("680x650")
+        self.geometry("1000x650")
         self.resizable(False, False)
 
-        for c in range(3):
+        for c in range(5):
             self.columnconfigure(index=c, weight=1)
         for r in range(11):
             self.rowconfigure(index=r, weight=1)
@@ -85,10 +85,10 @@ class Window(Tk):
         self.config(bg=self.bg_color)
 
         self.draw_label("Выберите данные для:", 0, 0, 2)
-        self.draw_label("Результаты:", 0, 2)
+        self.draw_label("Результаты:", 0, 4)
 
-        self.draw_button("Матрицы миграций", 1, 0, self.find_migration_path)
-        self.draw_button("Обратной свёртки", 1, 1, self.find_unfolding_path)
+        self.draw_button("Мат. миграций", 1, 0, self.find_migration_path)
+        self.draw_button("Обр. свёртки", 1, 1, self.find_unfolding_path)
 
         self.draw_label("Одинаковые бины:", 2, 0)
         self.draw_entry(2, 1, self.params.custom_bins)
@@ -99,18 +99,40 @@ class Window(Tk):
         self.draw_label("Сложить мин. бин:", 4, 0)
         self.draw_entry(4, 1, self.params.remove_min)
 
-        self.draw_label("Точность:", 5, 0)
+        self.draw_label("Хи квадрат:", 5, 0)
         self.draw_entry(5, 1, self.params.accuracy)
 
         self.draw_label("Усреднение (0-без):", 6, 0)
         self.draw_entry(6, 1, self.params.splitting)
 
+        self.draw_label("Округление вывода (0-без):", 0, 2, 2)
+
+        self.draw_label("Интервалы:", 1, 2)
+        self.draw_entry(1, 3, self.params.round_intervals)
+
+        self.draw_label("Мат. миграций:", 2, 2)
+        self.draw_entry(2, 3, self.params.round_mig_matrix)
+
+        self.draw_label("Мат. обр. свёртки:", 3, 2)
+        self.draw_entry(6, 3, self.params.round_unf_matrix)
+
+        self.draw_label("Результат:", 4, 2)
+        self.draw_entry(3, 3, self.params.round_result)
+
+        self.draw_label("Распределение:", 5, 2)
+        self.draw_entry(4, 3, self.params.round_distribution)
+
+        self.draw_label("Хи квадрат:", 6, 2)
+        self.draw_entry(5, 3, self.params.round_chi)
+
         self.params.start_btn = Button(
-            text="Пуск", border=0, font=self.custom_font, command=self.start_thread,
+            text="Старт", border=0, font=self.custom_font, command=self.start_thread,
             bg=self.btn_bg_color, fg=self.btn_text_color, activebackground=self.active_btn_bg_color,
             activeforeground=self.active_btn_text_color
         )
-        self.params.start_btn.grid(row=7, column=0, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
+        self.params.start_btn.grid(row=7, column=3, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
+
+        self.draw_label("Интервалы:", 7, 0)
 
         self.params.intervals_entry = Entry(font=self.text_area_font)
         self.params.intervals_entry.grid(row=7, column=1, columnspan=2,
@@ -119,26 +141,28 @@ class Window(Tk):
         x_scroll.grid(row=8, column=1, columnspan=2, sticky=EW)
         self.params.intervals_entry["xscrollcommand"] = x_scroll.set
 
-        self.draw_button("Интервалы", 1, 2, self.algorithm.show_intervals_stem)
+        self.draw_button("Интервалы", 1, 4, self.algorithm.show_intervals_stem)
 
-        self.draw_button("Матрица премигр.", 2, 2, self.algorithm.show_pre_migration_matrix)
+        self.draw_button("Матрица премигр.", 2, 4, self.algorithm.show_pre_migration_matrix)
 
-        self.draw_button("Матрица миграций", 3, 2, self.algorithm.show_migration_matrix)
+        self.draw_button("Матрица миграций", 3, 4, self.algorithm.show_migration_matrix)
 
-        self.draw_button("Общая погрешность", 4, 2, self.algorithm.calculate_fault)
+        self.draw_button("Матрица обр. свёртки", 4, 4, self.algorithm.show_unfolding_matrix)
 
-        self.draw_button("Гист. итераций", 5, 2, self.algorithm.show_iterations)
+        self.draw_button("Общая погрешность", 5, 4, self.algorithm.calculate_fault)
 
-        self.draw_button("Гист. результата", 6, 2, lambda: self.algorithm.show_result(self.params.result_style))
+        self.draw_button("Гист. итераций", 6, 4, self.algorithm.show_iterations)
 
-        self.params.text_area = Text(width=80, height=10, wrap="none", font=self.text_area_font)
+        self.draw_button("Гист. результата", 7, 4, lambda: self.algorithm.show_result(self.params.result_style))
+
+        self.params.text_area = Text(width=150, height=10, wrap="none", font=self.text_area_font)
         self.params.text_area.bind("<Key>", lambda event: self.ctrl_event(event))
-        self.params.text_area.grid(row=9, column=0, rowspan=2, columnspan=3,
+        self.params.text_area.grid(row=9, column=0, rowspan=2, columnspan=5,
                                    ipadx=self.ipad_x, ipady=self.ipad_x, padx=6, pady=6, sticky=NW)
         ys = ttk.Scrollbar(orient="vertical", command=self.params.text_area.yview)
-        ys.grid(row=9, column=3, rowspan=2, sticky=NS)
+        ys.grid(row=9, column=5, rowspan=2, sticky=NS)
         xs = ttk.Scrollbar(orient="horizontal", command=self.params.text_area.xview)
-        xs.grid(row=11, column=0, columnspan=3, sticky=EW)
+        xs.grid(row=11, column=0, columnspan=5, sticky=EW)
         self.params.text_area["yscrollcommand"] = ys.set
         self.params.text_area["xscrollcommand"] = xs.set
 
@@ -238,6 +262,13 @@ class AlgorithmParams:
         self.remove_min = StringVar(value="0")
         self.accuracy = StringVar(value="0.05")
         self.splitting = StringVar(value="0")
+
+        self.round_intervals = StringVar(value="4")
+        self.round_mig_matrix = StringVar(value="2")
+        self.round_unf_matrix = StringVar(value="2")
+        self.round_result = StringVar(value="2")
+        self.round_distribution = StringVar(value="2")
+        self.round_chi = StringVar(value="4")
 
         self.thread = BooleanVar(value=False)
 

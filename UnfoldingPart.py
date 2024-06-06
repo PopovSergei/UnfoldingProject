@@ -1,4 +1,5 @@
 import random
+from tkinter import messagebox as mb
 
 from utils import FileUsage, DataOutput
 import numpy as np
@@ -141,23 +142,57 @@ class UnfoldingPart:
         for j in range(self.bins):
             self.distribution_array[j] = self.result_array[j] / result_array_sum
 
-    def print_algorithm_results(self, params, old_chi_square, new_chi_square):
-        if params.unf.get():
-            self.result_string += DataOutput.matrix_to_string(self.unfolding_matrix, self.bins, True)
-        if params.res.get():
-            self.result_string += DataOutput.array_to_string("Результат:", self.result_array, 2)
-        if params.dis.get():
-            self.result_string += DataOutput.array_to_string("Распределение:", self.distribution_array, 2)
-        if params.chi.get():
-            self.result_string += \
-                f"Старый хи квадрат: {round(old_chi_square, 4)}, новый хи квадрат: {round(new_chi_square, 4)}\n\n"
-
     def find_chi_square(self, old_distribution):
         chi_square = 0
         for i in range(self.bins):
             if old_distribution[i] != 0:
                 chi_square += ((self.distribution_array[i] - old_distribution[i]) ** 2) / old_distribution[i]
         return chi_square
+
+    def print_algorithm_results(self, params, old_chi_square, new_chi_square):
+        if params.unf.get():
+            round_unf_matrix = None
+            try:
+                round_unf_matrix = int(params.round_unf_matrix.get())
+                if round_unf_matrix == 0:
+                    round_unf_matrix = None
+            except ValueError:
+                mb.showinfo("Информация", "Неправильное значение округления\nматрицы обратной свёртки")
+            self.result_string += DataOutput.matrix_to_string(self.unfolding_matrix, self.bins, True, round_unf_matrix)
+
+        if params.res.get():
+            round_result = None
+            try:
+                round_result = int(params.round_intervals.get())
+                if round_result == 0:
+                    round_result = None
+            except ValueError:
+                mb.showinfo("Информация", "Неправильное значение округления результата")
+            self.result_string += DataOutput.array_to_string("Результат:", self.result_array, round_result)
+
+        if params.dis.get():
+            round_distribution = None
+            try:
+                round_distribution = int(params.round_intervals.get())
+                if round_distribution == 0:
+                    round_distribution = None
+            except ValueError:
+                mb.showinfo("Информация", "Неправильное значение округления распределения")
+            self.result_string += DataOutput.array_to_string(
+                "Распределение:", self.distribution_array, round_distribution)
+
+        if params.chi.get():
+            round_chi = None
+            try:
+                round_chi = int(params.round_chi.get())
+            except ValueError:
+                mb.showinfo("Информация", "Неправильное значение округления хи квадрат")
+            if round_chi != 0 and round_chi is not None:
+                self.result_string += (f"Старый хи квадрат: {round(old_chi_square, round_chi)}, "
+                                       f"новый хи квадрат: {round(new_chi_square, round_chi)}\n\n")
+            else:
+                self.result_string += (f"Старый хи квадрат: {old_chi_square}, "
+                                       f"новый хи квадрат: {new_chi_square}\n\n")
 
 
 def find_interval(value, intervals):
