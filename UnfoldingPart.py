@@ -163,7 +163,7 @@ class UnfoldingPart:
         if params.res.get():
             round_result = None
             try:
-                round_result = int(params.round_intervals.get())
+                round_result = int(params.round_result.get())
                 if round_result == 0:
                     round_result = None
             except ValueError:
@@ -173,7 +173,7 @@ class UnfoldingPart:
         if params.dis.get():
             round_distribution = None
             try:
-                round_distribution = int(params.round_intervals.get())
+                round_distribution = int(params.round_distribution.get())
                 if round_distribution == 0:
                     round_distribution = None
             except ValueError:

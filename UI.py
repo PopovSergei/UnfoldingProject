@@ -6,24 +6,16 @@ import threading
 from Algorithm import Algorithm
 
 
-# migration_path = "resources/test_1.txt"
-# data_path = "resources/test_2.txt"
-# migration_path = "resources/first_part2.txt"
-# data_path = "resources/second_part2.txt"
-# migration_path = "resources/sim_p_2.txt"
-# data_path = "resources/sim_p_2.txt"
-
-
 class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title("Обратная свёртка")
-        self.geometry("1000x650")
+        self.geometry("1000x780")
         self.resizable(False, False)
 
         for c in range(5):
             self.columnconfigure(index=c, weight=1)
-        for r in range(11):
+        for r in range(14):
             self.rowconfigure(index=r, weight=1)
 
         self.algorithm = Algorithm()
@@ -57,8 +49,6 @@ class Window(Tk):
         app_menu.add_command(label="Тёмная тема", command=lambda: self.set_theme("dark"))
 
         algorithm_menu = Menu(menu, tearoff=0)
-        algorithm_menu.add_command(label="Очистить", command=lambda: self.params.text_area.delete(1.0, END))
-        algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Подробный результат", variable=self.params.result_style)
         algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Бины и интервалы", variable=self.params.inter)
@@ -71,6 +61,8 @@ class Window(Tk):
         algorithm_menu.add_checkbutton(label="Результат", variable=self.params.res)
         algorithm_menu.add_checkbutton(label="Распределение", variable=self.params.dis)
         algorithm_menu.add_checkbutton(label="Хи квадрат", variable=self.params.chi)
+        algorithm_menu.add_separator()
+        algorithm_menu.add_command(label="Очистить", command=lambda: self.params.text_area.delete(1.0, END))
 
         intervals_menu = Menu(menu, tearoff=0)
         intervals_menu.add_checkbutton(label="Ручные интервалы", variable=self.params.hand_intervals)
@@ -84,8 +76,9 @@ class Window(Tk):
     def draw_widgets(self):
         self.config(bg=self.bg_color)
 
+        # Column 0, 1
+
         self.draw_label("Выберите данные для:", 0, 0, 2)
-        self.draw_label("Результаты:", 0, 4)
 
         self.draw_button("Мат. миграций", 1, 0, self.find_migration_path)
         self.draw_button("Обр. свёртки", 1, 1, self.find_unfolding_path)
@@ -105,6 +98,16 @@ class Window(Tk):
         self.draw_label("Усреднение (0-без):", 6, 0)
         self.draw_entry(6, 1, self.params.splitting)
 
+        self.draw_label("Интервалы:", 7, 0)
+        self.params.intervals_entry = Entry(font=self.text_area_font)
+        self.params.intervals_entry.grid(row=7, column=1, columnspan=2,
+                                         ipadx=self.ipad_x, ipady=self.ipad_x, padx=5, pady=5, sticky=EW)
+        x_scroll = ttk.Scrollbar(orient="horizontal", command=self.params.intervals_entry.xview)
+        x_scroll.grid(row=8, column=1, columnspan=2, sticky=EW)
+        self.params.intervals_entry["xscrollcommand"] = x_scroll.set
+
+        # Column 2, 3
+
         self.draw_label("Округление вывода (0-без):", 0, 2, 2)
 
         self.draw_label("Интервалы:", 1, 2)
@@ -114,16 +117,16 @@ class Window(Tk):
         self.draw_entry(2, 3, self.params.round_mig_matrix)
 
         self.draw_label("Мат. обр. свёртки:", 3, 2)
-        self.draw_entry(6, 3, self.params.round_unf_matrix)
+        self.draw_entry(3, 3, self.params.round_unf_matrix)
 
         self.draw_label("Результат:", 4, 2)
-        self.draw_entry(3, 3, self.params.round_result)
+        self.draw_entry(4, 3, self.params.round_result)
 
         self.draw_label("Распределение:", 5, 2)
-        self.draw_entry(4, 3, self.params.round_distribution)
+        self.draw_entry(5, 3, self.params.round_distribution)
 
         self.draw_label("Хи квадрат:", 6, 2)
-        self.draw_entry(5, 3, self.params.round_chi)
+        self.draw_entry(6, 3, self.params.round_chi)
 
         self.params.start_btn = Button(
             text="Старт", border=0, font=self.custom_font, command=self.start_thread,
@@ -132,14 +135,9 @@ class Window(Tk):
         )
         self.params.start_btn.grid(row=7, column=3, ipadx=self.ipad_x, ipady=self.ipad_y, padx=5, pady=5, sticky=EW)
 
-        self.draw_label("Интервалы:", 7, 0)
+        # Column 4
 
-        self.params.intervals_entry = Entry(font=self.text_area_font)
-        self.params.intervals_entry.grid(row=7, column=1, columnspan=2,
-                                         ipadx=self.ipad_x, ipady=self.ipad_x, padx=5, pady=5, sticky=EW)
-        x_scroll = ttk.Scrollbar(orient="horizontal", command=self.params.intervals_entry.xview)
-        x_scroll.grid(row=8, column=1, columnspan=2, sticky=EW)
-        self.params.intervals_entry["xscrollcommand"] = x_scroll.set
+        self.draw_label("Результаты:", 0, 4)
 
         self.draw_button("Интервалы", 1, 4, self.algorithm.show_intervals_stem)
 
@@ -155,14 +153,16 @@ class Window(Tk):
 
         self.draw_button("Гист. результата", 7, 4, lambda: self.algorithm.show_result(self.params.result_style))
 
-        self.params.text_area = Text(width=150, height=10, wrap="none", font=self.text_area_font)
+        # Text area
+
+        self.params.text_area = Text(width=150, height=15, wrap="none", font=self.text_area_font)
         self.params.text_area.bind("<Key>", lambda event: self.ctrl_event(event))
-        self.params.text_area.grid(row=9, column=0, rowspan=2, columnspan=5,
+        self.params.text_area.grid(row=9, column=0, rowspan=4, columnspan=5,
                                    ipadx=self.ipad_x, ipady=self.ipad_x, padx=6, pady=6, sticky=NW)
         ys = ttk.Scrollbar(orient="vertical", command=self.params.text_area.yview)
-        ys.grid(row=9, column=5, rowspan=2, sticky=NS)
+        ys.grid(row=9, column=5, rowspan=4, sticky=NS)
         xs = ttk.Scrollbar(orient="horizontal", command=self.params.text_area.xview)
-        xs.grid(row=11, column=0, columnspan=5, sticky=EW)
+        xs.grid(row=14, column=0, columnspan=5, sticky=EW)
         self.params.text_area["yscrollcommand"] = ys.set
         self.params.text_area["xscrollcommand"] = xs.set
 
@@ -252,6 +252,13 @@ class Window(Tk):
 
 class AlgorithmParams:
     def __init__(self):
+        # migration_path = "resources/test_1.txt"
+        # data_path = "resources/test_2.txt"
+        # migration_path = "resources/first_part2.txt"
+        # data_path = "resources/second_part2.txt"
+        # migration_path = "resources/sim_p_2.txt"
+        # data_path = "resources/sim_p_2.txt"
+
         # self.migration_path = "resources/first_part2.txt"
         # self.unfolding_path = "resources/second_part2.txt"
         self.migration_path = "resources/first_half.txt"
@@ -267,7 +274,7 @@ class AlgorithmParams:
         self.round_mig_matrix = StringVar(value="2")
         self.round_unf_matrix = StringVar(value="2")
         self.round_result = StringVar(value="2")
-        self.round_distribution = StringVar(value="2")
+        self.round_distribution = StringVar(value="4")
         self.round_chi = StringVar(value="4")
 
         self.thread = BooleanVar(value=False)
