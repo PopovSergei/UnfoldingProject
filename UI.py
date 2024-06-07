@@ -48,30 +48,31 @@ class Window(Tk):
         app_menu.add_command(label="Светлая тема", command=lambda: self.set_theme("light"))
         app_menu.add_command(label="Тёмная тема", command=lambda: self.set_theme("dark"))
 
-        algorithm_menu = Menu(menu, tearoff=0)
-        algorithm_menu.add_checkbutton(label="Подробный результат", variable=self.params.result_style)
-        algorithm_menu.add_separator()
-        algorithm_menu.add_checkbutton(label="Бины и интервалы", variable=self.params.inter)
-        algorithm_menu.add_checkbutton(label="Апр. массивы", variable=self.params.prior_arr)
-        algorithm_menu.add_checkbutton(label="Матрица премиграций", variable=self.params.pre_mig)
-        algorithm_menu.add_checkbutton(label="Матрица миграций", variable=self.params.mig)
-        algorithm_menu.add_separator()
-        algorithm_menu.add_checkbutton(label="Апост. массивы", variable=self.params.post_arr)
-        algorithm_menu.add_checkbutton(label="Матрица обр. свёртки", variable=self.params.unf)
-        algorithm_menu.add_checkbutton(label="Результат", variable=self.params.res)
-        algorithm_menu.add_checkbutton(label="Распределение", variable=self.params.dis)
-        algorithm_menu.add_checkbutton(label="Хи квадрат", variable=self.params.chi)
-        algorithm_menu.add_separator()
-        algorithm_menu.add_command(label="Очистить", command=lambda: self.params.text_area.delete(1.0, END))
+        output_menu = Menu(menu, tearoff=0)
+        output_menu.add_checkbutton(label="Подробный результат", variable=self.params.result_style)
+        output_menu.add_separator()
+        output_menu.add_checkbutton(label="Бины и интервалы", variable=self.params.inter)
+        output_menu.add_checkbutton(label="Апр. массивы", variable=self.params.prior_arr)
+        output_menu.add_checkbutton(label="Матрица премиграций", variable=self.params.pre_mig)
+        output_menu.add_checkbutton(label="Матрица миграций", variable=self.params.mig)
+        output_menu.add_separator()
+        output_menu.add_checkbutton(label="Апост. массивы", variable=self.params.post_arr)
+        output_menu.add_checkbutton(label="Матрица обр. свёртки", variable=self.params.unf)
+        output_menu.add_checkbutton(label="Результат", variable=self.params.res)
+        output_menu.add_checkbutton(label="Распределение", variable=self.params.dis)
+        output_menu.add_checkbutton(label="Хи квадрат", variable=self.params.chi)
+        output_menu.add_separator()
+        output_menu.add_command(label="Очистить", command=lambda: self.params.text_area.delete(1.0, END))
 
-        intervals_menu = Menu(menu, tearoff=0)
-        intervals_menu.add_checkbutton(label="Ручные интервалы", variable=self.params.hand_intervals)
-        intervals_menu.add_separator()
-        intervals_menu.add_command(label="Очистить", command=lambda: self.params.intervals_entry.delete(0, END))
+        algorithm_menu = Menu(menu, tearoff=0)
+        algorithm_menu.add_checkbutton(label="Норм. распр.", variable=self.params.norm_dis)
+        algorithm_menu.add_separator()
+        algorithm_menu.add_checkbutton(label="Ручные интервалы", variable=self.params.hand_intervals)
+        algorithm_menu.add_command(label="Очистить", command=lambda: self.params.intervals_entry.delete(0, END))
 
         menu.add_cascade(label="Приложение", menu=app_menu)
-        menu.add_cascade(label="Вывод алгоритма", menu=algorithm_menu)
-        menu.add_cascade(label="Интервалы", menu=intervals_menu)
+        menu.add_cascade(label="Вывод", menu=output_menu)
+        menu.add_cascade(label="Алгоритм", menu=algorithm_menu)
 
     def draw_widgets(self):
         self.config(bg=self.bg_color)
@@ -264,9 +265,9 @@ class AlgorithmParams:
         self.migration_path = "resources/first_half.txt"
         self.unfolding_path = "resources/second_half.txt"
 
-        self.custom_bins = StringVar(value="35")
+        self.custom_bins = StringVar(value="40")
         self.split_max = StringVar(value="5")
-        self.remove_min = StringVar(value="0")
+        self.remove_min = StringVar(value="5")
         self.accuracy = StringVar(value="0.05")
         self.splitting = StringVar(value="0")
 
@@ -281,6 +282,7 @@ class AlgorithmParams:
 
         self.result_style = BooleanVar(value=True)
         self.hand_intervals = BooleanVar(value=False)
+        self.norm_dis = BooleanVar(value=True)
 
         self.inter = BooleanVar(value=True)
         self.prior_arr = BooleanVar(value=False)

@@ -1,3 +1,4 @@
+import math
 import random
 from tkinter import messagebox as mb
 
@@ -85,18 +86,25 @@ class UnfoldingPart:
     def d_agostini_algorithm(self, accuracy, params):
         self.distribution_array = [1 / self.bins] * self.bins
 
-        # x = np.arange(0, self.bins, 1)
-        # max_meas = self.measured_array.index(max(self.measured_array))
-        #
-        # sr_znach = sum(self.measured_array) / self.bins
-        # bolsh = 0
-        # for i in range(self.bins):
-        #     if self.measured_array[i] > sr_znach:
-        #         bolsh += 1
-        # obsh = bolsh / self.bins * 10
-        #
-        # smf_str = self.bins / 1
-        # self.distribution_array = norm.pdf(x, max_meas, smf_str)
+        if params.norm_dis.get():
+            x = np.arange(0, self.bins, 1)
+            max_meas = self.measured_array.index(max(self.measured_array))
+            smf_str = math.floor(self.bins / 3)
+            self.distribution_array = norm.pdf(x, max_meas, smf_str)
+
+            meas_dis = [0] * self.bins
+            for i in range(self.bins):
+                meas_dis[i] = self.measured_array[i] / sum(self.measured_array)
+
+            # DataOutput.show_bar_charts([meas_dis, self.distribution_array], ["Meas", "Norm"], "Bins", "Vals", 1)
+
+            print(sum(self.distribution_array))
+            odin_proc = sum(self.distribution_array) / 100
+            for i in range(self.bins):
+                self.distribution_array[i] = self.distribution_array[i] / odin_proc / 100
+            print(sum(self.distribution_array))
+
+            # DataOutput.show_bar_charts([meas_dis, self.distribution_array], ["Meas", "Norm"], "Bins", "Vals", 1)
 
         new_chi_square = 100
         old_chi_square = 101
