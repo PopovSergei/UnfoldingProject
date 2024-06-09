@@ -265,7 +265,7 @@ class AlgorithmParams:
         self.migration_path = "resources/first_half.txt"
         self.unfolding_path = "resources/second_half.txt"
 
-        self.custom_bins = StringVar(value="40")
+        self.custom_bins = StringVar(value="20")
         self.split_max = StringVar(value="5")
         self.remove_min = StringVar(value="5")
         self.accuracy = StringVar(value="0.05")
