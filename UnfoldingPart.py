@@ -6,6 +6,8 @@ from utils import FileUsage, DataOutput
 import numpy as np
 from scipy.stats import norm
 
+#  https://drive.google.com/drive/folders/14blCytulZyZXqUBYh24fKoaFRZu6PBvc?usp=sharing
+
 
 class UnfoldingPart:
     def __init__(self, migration_part, splitting, accuracy, params):
@@ -139,6 +141,11 @@ class UnfoldingPart:
 
             old_distribution_array = self.distribution_array.copy()
             self.set_distribution_array()
+
+            if params.normalize.get():
+                sum_of_measured_array = sum(self.measured_array)
+                for i in range(self.bins):
+                    self.result_array[i] = sum_of_measured_array * self.distribution_array[i]
 
             old_chi_square = new_chi_square
             new_chi_square = self.find_chi_square(old_distribution_array)

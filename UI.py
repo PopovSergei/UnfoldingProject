@@ -67,6 +67,8 @@ class Window(Tk):
         algorithm_menu = Menu(menu, tearoff=0)
         algorithm_menu.add_checkbutton(label="Норм. распр.", variable=self.params.norm_dis)
         algorithm_menu.add_separator()
+        algorithm_menu.add_checkbutton(label="Нормализация", variable=self.params.normalize)
+        algorithm_menu.add_separator()
         algorithm_menu.add_checkbutton(label="Ручные интервалы", variable=self.params.hand_intervals)
         algorithm_menu.add_command(label="Очистить", command=lambda: self.params.intervals_entry.delete(0, END))
 
@@ -262,8 +264,11 @@ class AlgorithmParams:
 
         # self.migration_path = "resources/first_part2.txt"
         # self.unfolding_path = "resources/second_part2.txt"
-        self.migration_path = "resources/first_half.txt"
-        self.unfolding_path = "resources/second_half.txt"
+        # self.migration_path = "resources/first_half.txt"
+        # self.unfolding_path = "resources/second_half.txt"
+
+        self.migration_path = ""
+        self.unfolding_path = ""
 
         self.custom_bins = StringVar(value="20")
         self.split_max = StringVar(value="5")
@@ -283,6 +288,7 @@ class AlgorithmParams:
         self.result_style = BooleanVar(value=True)
         self.hand_intervals = BooleanVar(value=False)
         self.norm_dis = BooleanVar(value=True)
+        self.normalize = BooleanVar(value=False)
 
         self.inter = BooleanVar(value=True)
         self.prior_arr = BooleanVar(value=False)
