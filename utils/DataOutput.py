@@ -37,8 +37,6 @@ def show_bar_charts(arrays, names, x_label, y_label, color_scheme=1):
         color3 = "#035D8F"
         color4 = "#2787B7"
         color5 = "#67B3DA"
-        color6 = "#AED3E5"
-        color7 = "#DBEAF1"
     else:
         color1 = "#6FAC9C"
         color2 = "#9FD4C0"

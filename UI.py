@@ -255,13 +255,6 @@ class Window(Tk):
 
 class AlgorithmParams:
     def __init__(self):
-        # migration_path = "resources/test_1.txt"
-        # data_path = "resources/test_2.txt"
-        # migration_path = "resources/first_part2.txt"
-        # data_path = "resources/second_part2.txt"
-        # migration_path = "resources/sim_p_2.txt"
-        # data_path = "resources/sim_p_2.txt"
-
         # self.migration_path = "resources/first_part2.txt"
         # self.unfolding_path = "resources/second_part2.txt"
         # self.migration_path = "resources/first_half.txt"

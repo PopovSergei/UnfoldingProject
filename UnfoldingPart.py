@@ -6,8 +6,6 @@ from utils import FileUsage, DataOutput
 import numpy as np
 from scipy.stats import norm
 
-#  https://drive.google.com/drive/folders/14blCytulZyZXqUBYh24fKoaFRZu6PBvc?usp=sharing
-
 
 class UnfoldingPart:
     def __init__(self, migration_part, splitting, accuracy, params):
@@ -32,27 +30,7 @@ class UnfoldingPart:
         self.results = []
 
         if splitting == 0:
-            # params.norm_dis.set(value=False)
             self.d_agostini_algorithm(accuracy, params)
-            # ravn_res = self.result_array.copy()
-            # params.norm_dis.set(value=True)
-            # self.d_agostini_algorithm(accuracy, params)
-            # norm_res = self.result_array.copy()
-            # arrays = [[]]
-            # names = ["Измеренное"]
-            # for j in range(self.bins):
-            #     arrays[0].append(abs(self.true_array[j] - self.measured_array[j]))
-            #
-            # names.append("Нормальное")
-            # arrays.append([])
-            # for i in range(self.bins):
-            #     arrays[1].append(abs(self.true_array[i] - norm_res[i]))
-            # names.append("Равномерное")
-            # arrays.append([])
-            # for i in range(self.bins):
-            #     arrays[2].append(abs(self.true_array[i] - ravn_res[i]))
-            #
-            # DataOutput.show_bar_charts(arrays, names, "Бины", "Ошибочные события", 1)
         else:
             util_measured_array = self.measured_array.copy()
             results_array = [0] * self.bins
@@ -114,21 +92,9 @@ class UnfoldingPart:
             scale = math.floor(self.bins / 3)
             self.distribution_array = norm.pdf(x, loc, scale)
 
-            # meas_dis = [0] * self.bins
-            # for i in range(self.bins):
-            #     meas_dis[i] = self.measured_array[i] / sum(self.measured_array)
-
-            # DataOutput.show_bar_charts([meas_dis, self.distribution_array], ["Meas", "Norm"], "Bins", "Vals", 1)
-
-            # print(sum(self.distribution_array))
             percent = sum(self.distribution_array) / 100
             for i in range(self.bins):
                 self.distribution_array[i] = self.distribution_array[i] / percent / 100
-            # print(sum(self.distribution_array))
-
-            # DataOutput.show_bar_charts([meas_dis, self.distribution_array, [1 / self.bins] * self.bins],
-            #                            ["Измеренное", "Нормальное", "Равномерное"],
-            #                            "Бины", "Вероятности", 1)
 
         new_chi_square = 100
         old_chi_square = 101
